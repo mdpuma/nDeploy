@@ -24,7 +24,7 @@
 
         <section id="downloads" class="clearfix">
           
-          <a href="http://rpm.piserve.com/nDeploy-release-centos-1.0-el6.noarch.rpm" id="download-release" class="button"><span>rpm repo</span></a>
+          <a href="http://rpm.piserve.com/" id="download-release" class="button"><span>rpm pkgs</span></a>
           <a href="https://github.com/AnoopAlias/nDeploy" id="view-on-github" class="button"><span>View on GitHub</span></a>
         </section>
 
@@ -45,21 +45,6 @@
 <li><p>nginX compiled with mod_pagespeed , ngx_cache_purge and Phusion Passenger</p></li>
 </ol>
 
-<h2>
-<a id="installation" class="anchor" href="#installation" aria-hidden="true"><span class="octicon octicon-link"></span></a>INSTALLATION</h2>
-
-<p>nDeploy needs a fairly newer cpanel version to work. The script is mostly tested on cpanel version 11.46.0 .It should work on lower versions too.</p>
-
-<p>1.Install EPEL repository </p>
-
-<p>2.Install nDeploy repository
-<code>rpm -ivh http://rpm.piserve.com/nDeploy-release-centos-1.0-el6.noarch.rpm</code>
-<code>yum install  nDeploy nginx-nDeploy</code></p>
-
-<p>3.Before you start nginx ; enable nDeploy using the command
-<code>/opt/nDeploy/scripts/cpanel-nDeploy-setup.sh enable</code></p>
-
-<p>Once you install nDeploy ;nginx starts listening on port 80 and 443 . By default the cpanel-nDeploy-setup script above just adds a PROXY backend which proxies everything to the cpanel apache service and a Ruby backend (required for Phusion Passenger to work) . Server Administrator will need to install additional backends and register them in nDeploy backends.yaml file inorder for users to starting using the different backends.</p>
 
 <h2>
 <a id="documentation" class="anchor" href="#documentation" aria-hidden="true"><span class="octicon octicon-link"></span></a>DOCUMENTATION</h2>
