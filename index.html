@@ -19,7 +19,7 @@
 
         <header>
           <h1>nDeploy</h1>
-          <h2>replace nginX with apache on cPanel server  - Deploy  PHP/Ruby/Python/NodeJS/ColdFusion and more</h2>
+          <h2>use HighPerformance nginX server on cPanel  - Deploy  PHP/Ruby/Python/NodeJS/ColdFusion and more</h2>
         </header>
 
         <section id="downloads" class="clearfix">
@@ -45,9 +45,26 @@
 <li><p>IPv6 support .IPv6 address configured in cPanel is automatically used.</p></li>
 <li><p>nginX compiled with mod_pagespeed , ngx_cache_purge and Phusion Passenger</p></li>
 
-Why is using nginX not as straight forward as apache ? - nginx has a different config file and config syntax which is very different from apache ;moreover 
+<p>Why is using nginX not as straight forward as apache ? - nginx has a different config file and config syntax which is very different from apache ;moreover 
 nginX does not support dynamic loading of .htaccess files . So if a user wish to use nginX ;he must create nginX style configuration file . Luckily nDeploy does the heavy lifting for a Cpanel user and 
-users has to add custom nginX configs only on rare cases.
+users has to add custom nginX configs only on rare cases.</p>
+
+<p>How does nDeploy compare to other solutions available for cpanel webservice performance bosting - Most nginx and varnish plugins available on 
+  cPanel simply use nginX ,varnish or squid on port 80 and simply proxy the traffic to apache .While this alienates apache from direct contact with the user 
+  It doesnt solve the problem of a slow and memory hungry apache serving the requests . nDeploy solves this by replacing apache entirely with 
+  nginX .The only other replacement we are aware of is the commercial LightSpeed weberver .
+</p>
+
+<p>Is nDeploy compatible with other plugins - Mostly no as nDeploy's real intention is replacing apache and most other tools need apache .While it is theoretically possible
+  for nginx to proxy to a varnish cache in the backend ; we believe nginx alone will do the job instead of having another proxy caching server in between .
+  Moreover ..nginx itself supports caching in proxy and fastcgi (nDeploy also supports ngx_cache_purge out of the box) protocols ; if properly configured.
+</p>
+
+<p>Will nginX make my server fly - This is a question we often get! - There is no short answer for this . One must study deeper webserver and its performance to understand the gravity of this question.
+  Most modern high performance web deployments use nginX ; php-fpm is the recommended deployment method by PHP.NET .But in the end application response time and performance are dependant on user code and use of caching and other technologies .
+  switching to nginX is a wise decesion to make your webstack lean and fast ;but it is only ONE decesion among a bunch of other steps you have to take
+  to make your websites go fast .
+</p>
 
 </ol>
 <p>Watch nDeploy in action:</p>
