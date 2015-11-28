@@ -1,4 +1,8 @@
 #!/bin/bash
 
 ulimit -n 10000
-/etc/init.d/nginx configtest && /etc/init.d/nginx reload
+if [ -f /etc/init.d/nginx ]; then
+	/usr/sbin/nginx -t && /etc/init.d/nginx reload
+else
+	/usr/sbin/nginx -t && systemctl reload nginx
+fi

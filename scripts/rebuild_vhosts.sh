@@ -6,4 +6,4 @@ for CPANELUSER in $(cat /etc/domainusers|cut -d: -f1); do
 	echo -n " $CPANELUSER";
 done
 
-service nginx configtest && service nginx reload
+/opt/nDeploy/scripts/reload_nginx.sh
