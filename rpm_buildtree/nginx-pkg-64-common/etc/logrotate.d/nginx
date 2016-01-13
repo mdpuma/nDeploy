@@ -1,15 +1,15 @@
 /var/log/nginx/*.log {
         daily
         missingok
-        rotate 52
+        rotate 7
         compress
         delaycompress
         notifempty
         create 640 nobody adm
         sharedscripts
-        prerotate
-            [ -f /usr/nginx/scripts/nxapi-learn.sh ] && /usr/nginx/scripts/nxapi-learn.sh
-        endscript
+#        prerotate
+#            [ -f /usr/nginx/scripts/nxapi-learn.sh ] && /usr/nginx/scripts/nxapi-learn.sh
+#        endscript
         postrotate
             [ -f /var/run/nginx.pid ] && kill -USR1 `cat /var/run/nginx.pid`
         endscript
