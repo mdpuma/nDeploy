@@ -10,7 +10,10 @@ use Data::Dumper;
 my $installation_path = '/opt/nDeploy';
 my $backend_config_file = $installation_path.'/conf/backends.yaml';
 our $php_fpm_config = $installation_path.'/conf/php-fpm.conf';
-my $tries = 10;
+my $tries = 5;
+my $is_systemd=0;
+
+if(-d "/etc/systemd") {$is_systemd=1;}
 
 sub start{
 	my $ver = shift @_;
@@ -104,18 +107,36 @@ unless($action && !$help) {
 my $ref_php = $backends->[0]->{'PHP'};
 my %php = %$ref_php;
 
-for my $ver (keys %php) {
-	if($php_ver && $ver !~ /$php_ver/) {
-		next;
+if(!$is_systemd) {
+	for my $ver (keys %php) {
+		if($php_ver && $ver !~ /$php_ver/) {
+			next;
+		}
+		if($action eq "start") {
+			&start($ver, $php{$ver});
+		} elsif($action eq "stop") {
+			&stop($ver, $php{$ver});
+		} elsif($action eq "restart") {
+			&stop($ver, $php{$ver});
+			&start($ver, $php{$ver});
+		} elsif($action eq "reload") {
+			&reload($ver, $php{$ver});
+		}
 	}
-	if($action eq "start") {
-		&start($ver, $php{$ver});
-	} elsif($action eq "stop") {
-		&stop($ver, $php{$ver});
-	} elsif($action eq "restart") {
-		&stop($ver, $php{$ver});
-		&start($ver, $php{$ver});
-	} elsif($action eq "reload") {
-		&reload($ver, $php{$ver});
+} else {
+	for my $ver (keys %php) {
+		if($php_ver && $ver !~ /$php_ver/) {
+			next;
+		}
+		if($action eq "start") {
+			system("systemctl start $ver");
+		} elsif($action eq "stop") {
+			system("systemctl stop $ver");
+		} elsif($action eq "restart") {
+			system("systemctl restart $ver");
+		} elsif($action eq "reload") {
+			system("systemctl reload $ver");
+		}
+		system("systemctl status $ver | head -15");
 	}
 }

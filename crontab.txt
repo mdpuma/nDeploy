@@ -1,1 +1,2 @@
-0 * * * * /etc/init.d/ndeploy_backends restart
+* * * * * /opt/nDeploy/scripts/monitor_php_fpm.sh >/dev/null
+0 0 * * * /etc/init.d/ndeploy_backends restart

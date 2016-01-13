@@ -1,4 +1,4 @@
-/usr/local/phpbrew/php/php-*/var/log/*.log {
+/var/log/php-slow.log /usr/local/phpbrew/php/php-*/var/log/*.log {
 	daily
 	missingok
 	rotate 5
