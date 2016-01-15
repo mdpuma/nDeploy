@@ -35,20 +35,12 @@ echo -e '\e[93m Adding cpanel hooks \e[0m'
 /usr/local/cpanel/bin/manage_hooks add script /opt/nDeploy/scripts/accountmodify_hook_post.py --category Whostmgr --event Accounts::Modify --stage post --manual
 /usr/local/cpanel/bin/manage_hooks add script /opt/nDeploy/scripts/accountremove_hook_pre.py --category Whostmgr --event Accounts::Remove --stage pre --manual
 
-if [ -z "$PHPBREW_ROOT" ] ; then
-	export PHPBREW_ROOT=/usr/local/phpbrew
-	echo "export PHPBREW_ROOT=/usr/local/phpbrew" >> /root/.bashrc
-fi
-if [ -z "$NVM_DIR" ] ; then
-	export NVM_DIR="/usr/local/nvm"
-	echo "export NVM_DIR=/usr/local/nvm" >> /root/.bashrc
-fi
 if [ ! -d /opt/nDeploy/domain-data ] ; then
 	mkdir /opt/nDeploy/domain-data
 fi
 
-cp /opt/nDeploy/ndeploy_backends.init /etc/init.d/ndeploy_backends && chmod +x /etc/init.d/ndeploy_backends
-cp /opt/nDeploy/ndeploy_watcher.init /etc/init.d/ndeploy_watcher && chmod +x /etc/init.d/ndeploy_watcher
+#cp /opt/nDeploy/ndeploy_backends.init /etc/init.d/ndeploy_backends && chmod +x /etc/init.d/ndeploy_backends
+#cp /opt/nDeploy/ndeploy_watcher.init /etc/init.d/ndeploy_watcher && chmod +x /etc/init.d/ndeploy_watcher
 
 ln -s /opt/nDeploy/nDeploy_cp /usr/local/cpanel/base/frontend/x3/
 ln -s /opt/nDeploy/nDeploy_cp /usr/local/cpanel/base/frontend/paper_lantern/
