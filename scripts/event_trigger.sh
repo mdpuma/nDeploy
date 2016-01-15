@@ -16,7 +16,7 @@ echo $1 | grep -E "\.main\.|\.lock|\.db|\.cache|cache\.?" && exit 0
 # ignore event when directory is removed
 echo $3 |grep -E "IN_DELETE\|IN_ISDIR" && exit 0
 
-echo "[`date`][pid $$] Called script $0 $*" >> /opt/nDeploy/hook.log
+echo "[`date`][pid $$] Called script $0 $*" >> /opt/nDeploy/logs/hook.log
 
 
 case "$2" in
@@ -38,7 +38,7 @@ case "$2" in
 			DOMAIN=$(echo $1|awk -F'/' '{print $6}')
 			if [ -f /opt/nDeploy/domain-data/$DOMAIN ] && [ -n "$DOMAIN" ]; then
 				rm -f /etc/nginx/sites-enabled/${DOMAIN}.conf /etc/nginx/sites-enabled/${DOMAIN}.include /opt/nDeploy/domain-data/${DOMAIN}
-				echo "[`date`][pid $$] Run reload_nginx part" >> /opt/nDeploy/hook.log
+				echo "[`date`][pid $$] Run reload_nginx part" >> /opt/nDeploy/logs/hook.log
 				/opt/nDeploy/scripts/reload_nginx.sh
 				exit 0;
 			fi
@@ -65,7 +65,7 @@ case "$2" in
 		else
 			(
 				flock -x -w 300 500
-				echo "[`date`][pid $$] Run apache_php_config_generator init_backends part" >> /opt/nDeploy/hook.log
+				echo "[`date`][pid $$] Run apache_php_config_generator init_backends part" >> /opt/nDeploy/logs/hook.log
 				/opt/nDeploy/scripts/apache_php_config_generator.py $CPANELUSER
 				/opt/nDeploy/scripts/init_backends.pl --action=reload
 			) 500>/opt/nDeploy/lock/$CPANELUSER.aplock
@@ -80,7 +80,7 @@ if [[ $CPANELUSER == root || $CPANELUSER == *.lock || $CPANELUSER == .* || $1 ==
 else
 	(
 		flock -x -w 300 500
-		echo "[`date`][pid $$] Run generate_config reload_nginx part" >> /opt/nDeploy/hook.log
+		echo "[`date`][pid $$] Run generate_config reload_nginx part" >> /opt/nDeploy/logs/hook.log
 		/opt/nDeploy/scripts/generate_config.py $CPANELUSER
 		/opt/nDeploy/scripts/reload_nginx.sh
 	) 500>/opt/nDeploy/lock/$CPANELUSER.lock

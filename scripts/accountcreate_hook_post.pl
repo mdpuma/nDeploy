@@ -4,7 +4,7 @@ use JSON::Syck;
 use Data::Dumper;
 use YAML::Tiny;
 
-open(FH, ">>/opt/nDeploy/hook.log");
+open(FH, ">>/opt/nDeploy/logs/hook.log");
 $input = get_passed_data();
 my ( $result_status, $result_msg ) = do_something($input);
 

@@ -24,6 +24,11 @@ class PhpFpmConfig:
             self.reload=False
 
     def configure(self):
+        cpuserdatadir = "/var/cpanel/userdata/"+self.username
+        if os.path.isdir(cpuserdatadir) == False:
+            print('ERROR : no such cpanel userdata dir '+cpuserdatadir)
+            sys.exit(1)
+        
         if os.path.isfile(installation_path+"/conf/user_data.yaml.tmpl"):
             userdatayaml = installation_path+"/user-data/"+self.username
             if os.path.isfile(userdatayaml):
@@ -38,6 +43,10 @@ class PhpFpmConfig:
                 if "PHP" in backend_data_yaml_parsed:
                     php_backends_dict = backend_data_yaml_parsed["PHP"]
                     php_path = php_backends_dict.get(myversion)
+                    if php_path == None:
+                        print("No such php version available")
+                        sys.exit(1)
+                    
                     php_profile_set(self.username, myversion, php_path, self.reload)
                     path_to_socket = php_path + "/var/run/" + self.username + ".sock"
                     if os.path.islink("/opt/fpmsockets/"+self.username+".sock"):
@@ -52,7 +61,8 @@ class PhpFpmConfig:
                 subprocess.call("chown "+self.username+":"+self.username+" "+userdatayaml, shell=True)
                 self.configure()
         else:
-            sys.exit(0)
+            print('ERROR : no '+installation_path+'/conf/user_data.yaml.tmpl file')
+            sys.exit(1)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Set PHP-FPM socket for cpanel user to be used with Apache HTTPD")
@@ -61,8 +71,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
     cpaneluser = args.CPANELUSER
     reload = args.reload
-    if os.path.isfile(installation_path+"/conf/user_data.yaml.tmpl"):
-        myconfig = PhpFpmConfig(cpaneluser, reload)
-        myconfig.configure()
-    else:
-        sys.exit(0)
+
+    myconfig = PhpFpmConfig(cpaneluser, reload)
+    myconfig.configure()
