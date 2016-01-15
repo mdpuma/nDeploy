@@ -8,5 +8,6 @@ server {
 	access_log /usr/local/apache/domlogs/DOMAINNAME main;
 	access_log /usr/local/apache/domlogs/DOMAINNAME-bytes_log bytes_log;
 
+#	include /etc/nginx/conf.d/cpanel_services_sni_location.conf;
 	include /etc/nginx/sites-enabled/DOMAINNAME.include;
 }
