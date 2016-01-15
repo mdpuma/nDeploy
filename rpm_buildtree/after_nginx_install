@@ -1,3 +1,5 @@
+#!/bin/bash
+
 echo -e '\e[93m Setting up default vhost proxy in nginx \e[0m'
 cpanelmainip=$(grep ADDR /etc/wwwacct.conf|awk '{print $2}')
 sed -i "s/CPANELIP/$cpanelmainip/g" /etc/nginx/conf.d/default_server.conf
@@ -15,6 +17,10 @@ fi
 
 getent group nginx >/dev/null || groupadd -r nginx
 getent passwd nginx >/dev/null || useradd -r -g nginx -s /sbin/nologin -d /var/cache/nginx -c "nginx user"  nginx
-    
-systemctl preset nginx.service
-systemctl enable nginx.service
+
+if [ -d /etc/systemd ]; then
+	systemctl preset nginx.service
+	systemctl enable nginx.service
+else
+	chkconfig --level=235 nginx on
+fi

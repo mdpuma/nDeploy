@@ -8,7 +8,7 @@ include /etc/nginx/testcookie/testcookie_aes_locations.conf;
 location / {
 	testcookie on;
 	
-	limit_req zone=rate_10 burst=25;
+	limit_req zone=rate_10 burst=10;
 	proxy_pass http://PROXYLOCATION;
 }
 location ~* ^.+\.(jpg|jpeg|gif|png|ico|css|js|zip|tgz|gz|rar|bz2|doc|xls|exe|pdf|ppt|txt|tar|bmp|rtf|swf)$ {
@@ -25,6 +25,6 @@ location ~* ^.+\.(jpg|jpeg|gif|png|ico|css|js|zip|tgz|gz|rar|bz2|doc|xls|exe|pdf
 location @fallback {
 	testcookie on;
 	
-	limit_req zone=rate_10 burst=25;
+	limit_req zone=rate_10 burst=10;
 	proxy_pass http://PROXYLOCATION;
 }
