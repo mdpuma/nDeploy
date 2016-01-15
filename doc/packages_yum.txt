@@ -1,1 +1,1 @@
-yum install perl-YAML-Tiny.noarch -y
+yum install perl-YAML-Tiny.noarch python-argparse PyYAML python-lxml python-inotify -y
