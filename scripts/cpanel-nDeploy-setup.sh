@@ -35,8 +35,7 @@ function enable {
 	fi
 	
 	echo "SetEnvIf X-Forwarded-Proto https HTTPS=on" >> /usr/local/apache/conf/includes/pre_virtualhost_global.conf
-	
-	for CPANELUSER in $(cat /etc/domainusers|cut -d: -f1); do
+	for CPANELUSER in $(cat /etc/domainusers|sort -u|cut -d: -f1); do
 		/opt/nDeploy/scripts/generate_config.py $CPANELUSER
 	done
 	
@@ -113,5 +112,6 @@ case "$1" in
 		;;
 	*)
 		echo $"Usage: $0 {enable|disable}"
-	exit 1
+		exit 1
+		;;
 esac
