@@ -24,9 +24,9 @@ nginx_dir = "/etc/nginx/sites-enabled/"
 def remove_file(fn):
     if os.path.isfile(fn):
         os.remove(fn)
-        print("Removing file "+fn)
+        print('Removing file '+fn)
     else:
-        print(("Cant remove file "+fn))
+        print('Cant remove file '+fn)
     return
 
 # Function defs
@@ -38,15 +38,15 @@ def remove_php_fpm_pool(user_name):
     if "PHP" in backend_data_yaml_parsed:
         php_backends_dict = backend_data_yaml_parsed["PHP"]
         for php_path in list(php_backends_dict.values()):
-            phppool_link = php_path + "/etc/php-fpm.d/" + user_name + ".conf"
-            phppool_file = '/opt/nDeploy/conf/php-fpm.d/'+user_name+'.conf'
+            phppool_link = php_path + '/etc/php-fpm.d/' + user_name + '.conf'
+            phppool_file = '/opt/nDeploy/conf/php-fpm.d/' + user_name + '.conf'
             if os.path.islink(phppool_link):
-	        print("Removing link "+phppool_link)
+                print('Removing link '+phppool_link)
                 os.remove(phppool_link)
-            if os.path.isfile(phppool_file):
-                print("Removing file "+phppool_file)
-                os.remove(phppool_file)
-    subprocess.call("rm -v /opt/fpmsockets/"+user_name+".sock >/dev/null 2>&1", shell=True)
+            remove_file(phppool_file)
+    phppool_socket_link = '/opt/fpmsockets/' + user_name + '.sock'
+    if os.path.islink(phppool_socket_link) == True:
+        os.remove(phppool_socket_link)
     return
 
 
