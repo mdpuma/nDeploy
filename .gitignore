@@ -1,1 +1,4 @@
 *.rpm
+hook.log
+watcher.log
+watcher.pid
