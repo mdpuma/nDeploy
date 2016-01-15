@@ -1,0 +1,14 @@
+1. Check changes create,modify,delete in
+	/var/cpanel/userdata 
+   for files similar like main, domain.com recursively
+   ignore nobody, *cache*
+	
+   Check changes for modify in
+	/opt/nDeploy/domain-data
+   for anyfiles
+   (for cpanel plugin)
+   
+   Check changes for modify in
+	/opt/nDeploy/user-data
+   for any files
+   (for cpanel plugin)

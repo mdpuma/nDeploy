@@ -137,6 +137,6 @@ if(!$is_systemd) {
 		} elsif($action eq "reload") {
 			system("systemctl reload $ver");
 		}
-		system("systemctl status $ver | head -15");
+		system("systemctl status $ver | head -7");
 	}
 }
