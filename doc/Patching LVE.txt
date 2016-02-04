@@ -1,0 +1,9 @@
+1. Apply provided patch
+
+  patch -p1 < patch.patch
+  
+2. Run autoconf
+  
+  ./buildconf --force from build directory
+  
+3. Run ./configure & make

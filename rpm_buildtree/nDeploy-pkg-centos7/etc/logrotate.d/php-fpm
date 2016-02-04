@@ -7,6 +7,6 @@
 	notifempty
 	sharedscripts
 	postrotate
-		/etc/init.d/ndeploy_backends reload
+		/opt/nDeploy/scripts/init_backends.pl --action=reload
 	endscript
 }

@@ -28,7 +28,7 @@ catch_workers_output = no
 ;env[TMPDIR] = /tmp
 ;env[TEMP] = /tmp
 
-;php_admin_value[open_basedir] = ".:/usr/local/phpbrew/php/php-5.4.42/lib/php::/tmp:/home/$pool"
+;php_admin_value[open_basedir] = ".:/usr/local/phpbrew/php::/tmp:/home/$pool"
 php_admin_value[disable_functions] = exec, popen, system, shell_exec, passthru, ini_alter, dl, openlog, syslog, readlink, symlink, link, pfsockopen, proc_nice, proc_open, proc_close, proc_terminate, pcntl_exec, escapeshellcmd, listen, show_source
 ;php_admin_value[error_reporting] = E_ALL & ~E_STRICT & ~E_NOTICE
 ;php_admin_value[memory_limit] = 128M

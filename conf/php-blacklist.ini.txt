@@ -1,0 +1,4 @@
+/home**/wp-config.php
+/home**/config.php
+/home**/database.php
+/home**/configuration.php

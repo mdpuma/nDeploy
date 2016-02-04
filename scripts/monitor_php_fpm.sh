@@ -10,6 +10,7 @@ check() {
 	fi
 }
 
-#check 5.3
 #check 5.4
 #check 5.5
+#check 5.6
+#check 7.0

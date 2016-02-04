@@ -31,3 +31,6 @@ if "PHP" in backend_data_yaml_parsed:
             service_file.write(line)
         template_file.close()
         service_file.close()
+        subprocess.call("systemctl enable "+php_version, shell=True)
+
+subprocess.call("systemctl daemon-reload", shell=True)

@@ -25,14 +25,23 @@ export PHPBREW_ROOT=/usr/local/phpbrew
 mkdir $PHPBREW_ROOT -v
 
 # default +fpm +mysql +exif +ftp +gd +intl +soap +pdo +curl +gmp +imap +iconv +sqlite +gettext
-php -n /usr/bin/phpbrew --debug install --jobs 12 --patch fpm-lve-php5.4_fixed.patch 5.6.16 +default +fpm +mysql +exif +ftp +gd +intl +soap +pdo +curl +gmp +imap +iconv +sqlite +gettext -- --with-libdir=lib64 --with-gd=shared --enable-gd-natf --with-jpeg-dir=/usr --with-png-dir=/usr
-php -n /usr/bin/phpbrew --debug install --jobs 12 --patch fpm-lve-php5.4_fixed.patch 5.5.30 +default +fpm +mysql +exif +ftp +gd +intl +soap +pdo +curl +gmp +imap +iconv +sqlite +gettext -- --with-libdir=lib64 --with-gd=shared --enable-gd-natf --with-jpeg-dir=/usr --with-png-dir=/usr
-php -n /usr/bin/phpbrew --debug install --jobs 12 --patch fpm-lve-php5.4_fixed.patch 5.4.45 +default +fpm +mysql +exif +ftp +gd +intl +soap +pdo +curl +gmp +imap +iconv +sqlite +gettext -- --with-libdir=lib64 --with-gd=shared --enable-gd-natf --with-jpeg-dir=/usr --with-png-dir=/usr
-php -n /usr/bin/phpbrew --debug install --jobs 12 --patch fpm-lve-php5.4_fixed.patch 5.3.29 +default +fpm +mysql +exif +ftp +gd +intl +soap +pdo +curl +gmp +imap +iconv +sqlite +gettext -- --with-libdir=lib64 --with-gd=shared --enable-gd-natf --with-jpeg-dir=/usr --with-png-dir=/usr
+cd /opt/nDeploy/PHP
+for ver in 5.4.45 5.6.17 7.0.2; do
+  # first, apply patch and autoconf
+  php -n /usr/bin/phpbrew --debug install --patch fpm-lve-php5.4.v2.patch --no-configure --no-install $ver
+  
+  cd /usr/local/phpbrew/build/php-$ver; ./buildconf --force
+  
+  # configure & make
+  php -n /usr/bin/phpbrew --debug install --jobs 12 $ver +default +fpm +mysql +exif +ftp +gd +intl +soap +pdo +curl +gmp +imap +iconv +sqlite +gettext -- --with-libdir=lib64 --with-gd=shared --enable-gd-natf --with-jpeg-dir=/usr --with-png-dir=/usr
+  
+  # check if lve is enabled
+  strings /usr/local/phpbrew/build/php-$ver/sapi/fpm/php-fpm | grep fpm_lve -i
+done
 
 #  --with-mssql=/usr/lib64/ --enable-msdblib for mssql support
 
-phpbrew use php-5.4.45
+phpbrew use $ver
 
 EXTENSIONS="imagick pdo_firebird memcache uploadprogress"
 for i in $EXTENSIONS; do

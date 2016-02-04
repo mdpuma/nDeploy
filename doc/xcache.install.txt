@@ -1,3 +1,19 @@
+extension = xcache.so
+xcache.cacher=On
+xcache.size=1000M
+xcache.stat=On
+xcache.count=8
+xcache.ttl=60
+xcache.gc_interval = 300
+xcache.admin.user=admin
+xcache.admin.pass=21232f297a57a5a743894a0e4a801fc3
+xcache.var_size=100M
+xcache.var_gc_interval = 300
+xcache.var_maxttl=1800
+xcache.var_ttl=300
+xcache.var_count=8
+
+
 cd ~
 wget http://xcache.lighttpd.net/pub/Releases/3.2.0/xcache-3.2.0.tar.gz
 source ~/.phpbrew/bashrc

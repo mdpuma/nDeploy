@@ -1,5 +1,6 @@
-[ndeploy]
-name=ndeploy repo
-baseurl=http://rpm.piserve.com/CentOS/$releasever/$basearch/
-gpgcheck=0
+[amplica]
+name=amplica
+baseurl=http://repo.amplica.md/centos$releasever
 enabled=0
+priority=10
+gpgcheck=0

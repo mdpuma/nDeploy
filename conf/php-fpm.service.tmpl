@@ -9,6 +9,8 @@ ExecStartPre={PHPPATH}/sbin/php-fpm --test --fpm-config /opt/nDeploy/conf/php-fp
 ExecStart={PHPPATH}/sbin/php-fpm --nodaemonize --fpm-config /opt/nDeploy/conf/php-fpm.conf
 ExecReload=/bin/kill -USR2 $MAINPID
 Restart=always
+RestartSec=2
+TimeoutSec=5
 
 [Install]
 WantedBy=multi-user.target

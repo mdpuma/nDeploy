@@ -1,0 +1,17 @@
+[Unit]
+Description=nDeploy Backends
+After=network.target remote-fs.target nss-lookup.target
+ 
+[Service]
+Type=forking
+ExecStart=/opt/nDeploy/scripts/init_backends.pl --action=start
+ExecStop=/opt/nDeploy/scripts/init_backends.pl --action=stop
+ExecReload=/opt/nDeploy/scripts/init_backends.pl --action=reload
+User=root
+Group=root
+TimeoutSec=30
+StandardOutput=tty
+RemainAfterExit=yes
+ 
+[Install]
+WantedBy=multi-user.target

@@ -1,13 +1,15 @@
 #!/bin/bash
 #Author: Anoop P Alias
 
-RPM_ITERATION="41"
+RPM_ITERATION="42"
 
 rm -f nDeploy-pkg/nDeploy-*rpm nDeploy-pkg-centos7/nDeploy-*rpm
 for version in nDeploy-pkg nDeploy-pkg-centos7; do
 	rsync -v ../scripts ../conf $version/opt/nDeploy/
 	rsync -v ../apache_fpm_cp ../nDeploy_cp $version/opt/nDeploy/
 	rsync -v ../domain-data ../user-data ../PHP ../logs ../lock $version/opt/nDeploy/
+	
+	chmod 755 $version/opt/nDeploy/scripts/*
 done
 
 cd nDeploy-pkg

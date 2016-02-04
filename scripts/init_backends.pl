@@ -19,7 +19,7 @@ sub start{
 	my $ver = shift @_;
 	my $path = shift @_;
 	
-	system("sysctl -q -w net.core.somaxconn=4096");
+	system("/sbin/sysctl -q -w net.core.somaxconn=4096");
 	
 	my $php_bin = $path.'/sbin/php-fpm';
 	my $php_conf_d = $path.'/etc/php-fpm.d';
@@ -106,10 +106,11 @@ unless($action && !$help) {
 
 my $ref_php = $backends->[0]->{'PHP'};
 my %php = %$ref_php;
+$php_ver = 'php-'.$php_ver;
 
 if(!$is_systemd) {
 	for my $ver (keys %php) {
-		if($php_ver && $ver !~ /$php_ver/) {
+		if($php_ver && $ver !~ /^$php_ver/) {
 			next;
 		}
 		if($action eq "start") {
@@ -125,7 +126,7 @@ if(!$is_systemd) {
 	}
 } else {
 	for my $ver (keys %php) {
-		if($php_ver && $ver !~ /$php_ver/) {
+		if($php_ver && $ver !~ /^$php_ver/) {
 			next;
 		}
 		if($action eq "start") {

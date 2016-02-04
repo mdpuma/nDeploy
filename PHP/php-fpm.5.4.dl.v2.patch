@@ -1,0 +1,253 @@
+diff -rupN php-5.4.45.old/main/php_config.h.in php-5.4.45/main/php_config.h.in
+--- php-5.4.45.old/main/php_config.h.in	2015-11-15 14:20:54.689999995 +0200
++++ php-5.4.45/main/php_config.h.in	2015-11-15 14:21:25.089999995 +0200
+@@ -1435,6 +1435,9 @@
+ /* PostgreSQL 7.3.0 or later */
+ #undef HAVE_PQUNESCAPEBYTEA
+ 
++/* do we have lve? */
++#undef HAVE_LVE
++
+ /* do we have prctl? */
+ #undef HAVE_PRCTL
+ 
+diff -rupN php-5.4.45.old/php-fpm.5.4.dl.patch php-5.4.45/php-fpm.5.4.dl.patch
+diff -rupN php-5.4.45.old/sapi/fpm/config.m4 php-5.4.45/sapi/fpm/config.m4
+--- php-5.4.45.old/sapi/fpm/config.m4	2015-11-15 14:20:55.582999995 +0200
++++ php-5.4.45/sapi/fpm/config.m4	2015-11-15 14:21:25.089999995 +0200
+@@ -19,6 +19,15 @@ AC_DEFUN([AC_FPM_STDLIBS],
+   AC_CHECK_HEADERS([sysexits.h])
+ ])
+ 
++AC_DEFUN([AC_FPM_LVE],
++[
++  have_lve=no
++  AC_CHECK_HEADERS([dlfcn.h], [have_lve=yes])
++  if test "$have_lve" = "yes"; then
++    AC_SEARCH_LIBS(dlopen, dl, [AC_DEFINE(HAVE_LVE, [], [LVE support])])
++  fi
++])
++
+ AC_DEFUN([AC_FPM_PRCTL],
+ [
+   AC_MSG_CHECKING([for prctl])
+@@ -542,6 +551,7 @@ if test "$PHP_FPM" != "no"; then
+   AC_MSG_RESULT($PHP_FPM)
+ 
+   AC_FPM_STDLIBS
++  AC_FPM_LVE
+   AC_FPM_PRCTL
+   AC_FPM_CLOCK
+   AC_FPM_TRACE
+diff -rupN php-5.4.45.old/sapi/fpm/fpm/fpm_children.c php-5.4.45/sapi/fpm/fpm/fpm_children.c
+--- php-5.4.45.old/sapi/fpm/fpm/fpm_children.c	2015-11-15 14:20:55.579999995 +0200
++++ php-5.4.45/sapi/fpm/fpm/fpm_children.c	2015-11-15 14:28:00.792999995 +0200
+@@ -31,12 +31,45 @@
+ 
+ #include "zlog.h"
+ 
++#ifdef HAVE_LVE
++#include <dlfcn.h>
++typedef void liblve;
++enum liblve_enter_flags {
++        LVE_NO_UBC      = 1 << 0,
++        LVE_NO_NAMESPACE = 1 << 1,
++        LVE_NO_MAXENTER = 1 << 2,
++        LVE_SILENCE     = 1 << 3,
++};
++typedef void *(*liblve_alloc)(size_t size);
++typedef void (*liblve_free)(void *ptr);
++void *handle_liblve = NULL;
++struct liblve *lve = NULL;
++int (*lve_jail_uid_ptr)(struct passwd *, unsigned int, char *) = NULL;
++int (*destroy_lve_ptr)(struct liblve *) = NULL;
++struct liblve * (*init_lve_ptr)(liblve_alloc, liblve_free) = NULL;
++int (*lve_exit_ptr)(struct liblve *, uint32_t *) = NULL;
++int (*lve_enter_flags_ptr)(struct liblve *,
++                    uint32_t, uint32_t *, enum liblve_enter_flags) = NULL;
++#endif
++
+ static time_t *last_faults;
+ static int fault;
+ 
++
+ static void fpm_children_cleanup(int which, void *arg) /* {{{ */
+ {
+ 	free(last_faults);
++#ifdef HAVE_LVE
++	if(handle_liblve){
++	    if(destroy_lve_ptr && lve) destroy_lve_ptr(lve);
++	    dlclose(handle_liblve);
++	    lve_enter_flags_ptr = NULL;
++	    destroy_lve_ptr = NULL;
++	    lve_exit_ptr = NULL;
++	    init_lve_ptr = NULL;
++	    lve_jail_uid_ptr = NULL;
++	}
++#endif
+ }
+ /* }}} */
+ 
+@@ -358,6 +391,42 @@ static void fpm_parent_resources_use(str
+ }
+ /* }}} */
+ 
++#ifdef HAVE_LVE
++void fpm_lve_leave(struct liblve *lve, struct fpm_worker_pool_s *wp, uint32_t p_cookie, int was_enter) /* {{{ */
++{
++  int rc = 0;
++  if (was_enter == 0) return;
++  zlog(ZLOG_DEBUG, "[pool %s] Exiting LVE: LVE(%d)", wp->config->name, wp->set_uid);  
++  rc = (*lve_exit_ptr)(lve, &p_cookie);
++  if (rc) {
++      zlog(ZLOG_ERROR, "[pool %s] Error existing LVE: LVE(%d)", wp->config->name, wp->set_uid);  
++  }
++}
++/* }}} */
++
++uint32_t fpm_lve_enter(struct liblve *lve, struct fpm_worker_pool_s *wp, int *was_enter) /* {{{ */
++{
++  uint32_t p_cookie = 0;
++  int rc = 0;
++  int keep_errno = 0;
++  zlog(ZLOG_DEBUG, "[pool %s] Entering LVE: LVE(%d)", wp->config->name, wp->set_uid);
++  rc = (*lve_enter_flags_ptr)(lve, wp->set_uid, &p_cookie, LVE_NO_MAXENTER);
++  keep_errno = errno;
++  if (rc) {
++    if (keep_errno = EPERM) {
++      zlog(ZLOG_ERROR, "[pool %s] Already inside LVE: LVE(%d)", wp->config->name, wp->set_uid);
++    } else {
++      zlog(ZLOG_ERROR, "[pool %s] Error on LVE enter: LVE(%d)", wp->config->name, wp->set_uid); 
++    } 
++    return 0;
++  } else {
++    *was_enter = 1;
++    return p_cookie;
++  }
++}
++/* }}} */
++#endif
++
+ int fpm_children_make(struct fpm_worker_pool_s *wp, int in_event_loop, int nb_to_spawn, int is_debug) /* {{{ */
+ {
+ 	pid_t pid;
+@@ -380,6 +449,16 @@ int fpm_children_make(struct fpm_worker_
+ 	} else { /* PM_STYLE_STATIC */
+ 		max = wp->config->pm_max_children;
+ 	}
++	
++#ifdef HAVE_LVE                                                                                                                                                                                                                            
++       uint32_t p_cookie = 0;
++       int was_enter = 0;
++       if(lve_enter_flags_ptr) {                                                                                                                                                                                                               
++        if (fpm_pctl_can_spawn_children()) {                                                                                                                                                                                                 
++         p_cookie = fpm_lve_enter(lve, wp, &was_enter);                                                                                                                                                                                                 
++        }                                         
++       }                                                                                                                                                                                           
++#endif 
+ 
+ 	/*
+ 	 * fork children while:
+@@ -409,7 +488,11 @@ int fpm_children_make(struct fpm_worker_
+ 
+ 			case -1 :
+ 				zlog(ZLOG_SYSERROR, "fork() failed");
+-
++#ifdef HAVE_LVE
++				if(lve_exit_ptr) {
++					fpm_lve_leave(lve, wp, p_cookie, was_enter);
++				}
++#endif
+ 				fpm_resources_discard(child);
+ 				return 2;
+ 
+@@ -422,6 +505,11 @@ int fpm_children_make(struct fpm_worker_
+ 		}
+ 
+ 	}
++#ifdef HAVE_LVE
++	if(lve_exit_ptr) {
++	    fpm_lve_leave(lve, wp, p_cookie, was_enter);
++	}
++#endif
+ 
+ 	if (!warned && fpm_global_config.process_max > 0 && fpm_globals.running_children >= fpm_global_config.process_max) {
+ 		warned = 1;
+@@ -454,8 +542,38 @@ int fpm_children_create_initial(struct f
+ }
+ /* }}} */
+ 
++#ifdef HAVE_LVE
++static int load_liblve_fpm(){
++    handle_liblve = dlopen("liblve.so.0", RTLD_LOCAL | RTLD_LAZY);
++    if(handle_liblve){
++	lve_enter_flags_ptr = dlsym(handle_liblve, "lve_enter_flags");
++	destroy_lve_ptr = dlsym(handle_liblve, "destroy_lve");
++	lve_exit_ptr = dlsym(handle_liblve, "lve_exit");
++	init_lve_ptr = dlsym(handle_liblve, "init_lve");
++	lve_jail_uid_ptr = dlsym(handle_liblve, "lve_jail_uid");
++	if(lve_exit_ptr && destroy_lve_ptr && lve_enter_flags_ptr && init_lve_ptr && lve_jail_uid_ptr){
++	    return 0;
++	}
++	lve_enter_flags_ptr = NULL;
++	destroy_lve_ptr = NULL;
++	lve_exit_ptr = NULL;
++	init_lve_ptr = NULL;
++	lve_jail_uid_ptr = NULL;
++    }
++    return -1;
++}
++#endif
++
+ int fpm_children_init_main() /* {{{ */
+ {
++#ifdef HAVE_LVE
++	if(!load_liblve_fpm()){
++	    zlog(ZLOG_DEBUG, "Work with LVE and CageFS");
++    	    lve = (*init_lve_ptr)(malloc, free);
++	} else {
++	    zlog(ZLOG_DEBUG, "Work without  LVE and CageFS");
++	}
++#endif
+ 	if (fpm_global_config.emergency_restart_threshold &&
+ 		fpm_global_config.emergency_restart_interval) {
+ 
+diff -rupN php-5.4.45.old/sapi/fpm/fpm/fpm_unix.c php-5.4.45/sapi/fpm/fpm/fpm_unix.c
+--- php-5.4.45.old/sapi/fpm/fpm/fpm_unix.c	2015-11-15 14:20:55.582999995 +0200
++++ php-5.4.45/sapi/fpm/fpm/fpm_unix.c	2015-11-15 14:21:25.106999984 +0200
+@@ -17,6 +17,12 @@
+ #include <sys/prctl.h>
+ #endif
+ 
++#ifdef HAVE_LVE
++#include <dlfcn.h>
++#define SECURELVE_MIN_UID 500
++extern int (*lve_jail_uid_ptr)(struct passwd *, unsigned int, char *);
++#endif
++
+ #include "fpm.h"
+ #include "fpm_conf.h"
+ #include "fpm_cleanup.h"
+@@ -168,7 +174,21 @@ int fpm_unix_init_child(struct fpm_worke
+ 			zlog(ZLOG_SYSERROR, "[pool %s] failed to set rlimit_core for this pool. Please check your system limits or decrease rlimit_core. setrlimit(RLIMIT_CORE, %d)", wp->config->name, wp->config->rlimit_core);
+ 		}
+ 	}
+-
++#ifdef HAVE_LVE
++	if(lve_jail_uid_ptr){
++	    if (is_root) {
++		struct passwd *pwd;
++		char error_msg[1024];
++		int result;
++		pwd = getpwnam(wp->config->user);
++		result = lve_jail_uid_ptr(pwd, SECURELVE_MIN_UID, error_msg);
++		if (1 != result && 0 != result) {
++		    zlog(ZLOG_SYSERROR, "[pool %s] CageFS jail error %s", wp->config->name, error_msg);
++		    return -1;
++		}
++	    }
++	}
++#endif
+ 	if (is_root && wp->config->chroot && *wp->config->chroot) {
+ 		if (0 > chroot(wp->config->chroot)) {
+ 			zlog(ZLOG_SYSERROR, "[pool %s] failed to chroot(%s)",  wp->config->name, wp->config->chroot);
