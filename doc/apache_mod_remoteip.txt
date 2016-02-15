@@ -1,0 +1,13 @@
+Install
+
+  mkdir mod_remoteip; cd mod_remoteip
+  wget https://svn.apache.org/repos/asf/httpd/httpd/branches/2.4.x/modules/metadata/mod_remoteip.c
+  apxs -ciA -n mod_remoteip mod_remoteip.c
+  rm *.la *.lo *.o *.slo -v
+
+
+Configure
+
+  LoadModule remoteip_module modules/mod_remoteip.so
+  RemoteIPHeader X-Real-IP
+  RemoteIPInternalProxy 127.0.0.1 46.102.154.134 46.102.154.135

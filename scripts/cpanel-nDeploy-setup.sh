@@ -21,18 +21,19 @@ function enable {
 		sed -i "s/CustomLog/#CustomLog/" /var/cpanel/templates/apache2_4/ssl_vhost.local
 	fi
 	
-	if [ -f /var/cpanel/templates/apache2_2/vhost.local ];then
-		sed -i "s/CustomLog/#CustomLog/" /var/cpanel/templates/apache2_2/vhost.local
-	else
-		cp -p /var/cpanel/templates/apache2_2/vhost.default /var/cpanel/templates/apache2_2/vhost.local
-		sed -i "s/CustomLog/#CustomLog/" /var/cpanel/templates/apache2_2/vhost.local
-	fi
-	if [ -f /var/cpanel/templates/apache2_2/ssl_vhost.local ];then
-		sed -i "s/CustomLog/#CustomLog/" /var/cpanel/templates/apache2_2/ssl_vhost.local
-	else
-		cp -p /var/cpanel/templates/apache2_2/ssl_vhost.default /var/cpanel/templates/apache2_2/ssl_vhost.local
-		sed -i "s/CustomLog/#CustomLog/" /var/cpanel/templates/apache2_2/ssl_vhost.local
-	fi
+#	Unsupported apache 2.2 in WHM 11.54
+#	if [ -f /var/cpanel/templates/apache2_2/vhost.local ];then
+#		sed -i "s/CustomLog/#CustomLog/" /var/cpanel/templates/apache2_2/vhost.local
+#	else
+#		cp -p /var/cpanel/templates/apache2_2/vhost.default /var/cpanel/templates/apache2_2/vhost.local
+#		sed -i "s/CustomLog/#CustomLog/" /var/cpanel/templates/apache2_2/vhost.local
+#	fi
+#	if [ -f /var/cpanel/templates/apache2_2/ssl_vhost.local ];then
+#		sed -i "s/CustomLog/#CustomLog/" /var/cpanel/templates/apache2_2/ssl_vhost.local
+#	else
+#		cp -p /var/cpanel/templates/apache2_2/ssl_vhost.default /var/cpanel/templates/apache2_2/ssl_vhost.local
+#		sed -i "s/CustomLog/#CustomLog/" /var/cpanel/templates/apache2_2/ssl_vhost.local
+#	fi
 	
 	echo "SetEnvIf X-Forwarded-Proto https HTTPS=on" >> /usr/local/apache/conf/includes/pre_virtualhost_global.conf
 	for CPANELUSER in $(cat /etc/domainusers|sort -u|cut -d: -f1); do

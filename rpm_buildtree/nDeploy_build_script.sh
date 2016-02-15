@@ -5,10 +5,10 @@ RPM_ITERATION="42"
 
 rm -f nDeploy-pkg/nDeploy-*rpm nDeploy-pkg-centos7/nDeploy-*rpm
 for version in nDeploy-pkg nDeploy-pkg-centos7; do
-	mkdir $version/opt/nDeploy -p
-	rsync -av ../scripts ../conf $version/opt/nDeploy/
+	mkdir $version/opt/nDeploy/{lock,logs,user-data,domain-data} -p
+	mkdir $version/opt/nDeploy/conf/php-fpm.d -p
+	rsync -av ../scripts ../conf ../PHP $version/opt/nDeploy/
 	rsync -av ../apache_fpm_cp ../nDeploy_cp $version/opt/nDeploy/
-	rsync -av ../domain-data ../user-data ../PHP ../logs ../lock $version/opt/nDeploy/
 	
 	chmod 755 $version/opt/nDeploy/scripts/*
 	chmod 755 $version/etc/rc.d/init.d/ndeploy_*
