@@ -1,0 +1,16 @@
+open (IN,"</etc/chkserv.d/chkservd.conf");
+my @chkservd = <IN>;
+close (IN);
+chomp @chkservd;
+
+if (not grep {$_ =~ /^lfd/} @chkservd) {
+        open (OUT,">/etc/chkserv.d/lfd");
+        print OUT "service[lfd]=x,x,x,service lfd restart,lfd,root\n";
+        close (OUT);
+
+        open (OUT, ">>/etc/chkserv.d/chkservd.conf");
+        print OUT "lfd:1\n";
+        close OUT;
+
+        system("/scripts/restartsrv_chkservd");
+} 

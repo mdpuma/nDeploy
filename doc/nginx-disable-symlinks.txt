@@ -1,0 +1,15 @@
+1. If use  
+  disable_symlinks if_not_owner from=/home2/halacumo/public_html;
+  
+  /home2 is directory
+  /home2/halacumo is directory
+  
+  Request return 403
+  
+2. If use
+  disable_symlinks if_not_owner from=/home/halacumo/public_html;
+  
+  /home is directory
+  /home/halacumo is symlink to /home2/halacumo
+  
+  Request work 200

@@ -35,7 +35,12 @@ function enable {
 #		sed -i "s/CustomLog/#CustomLog/" /var/cpanel/templates/apache2_2/ssl_vhost.local
 #	fi
 	
-	echo "SetEnvIf X-Forwarded-Proto https HTTPS=on" >> /usr/local/apache/conf/includes/pre_virtualhost_global.conf
+	install_modremoteip
+	
+	if [ -z "`grep HTTPS=on /usr/local/apache/conf/includes/pre_virtualhost_global.conf`" ]; do
+		echo "SetEnvIf X-Forwarded-Proto https HTTPS=on" >> /usr/local/apache/conf/includes/pre_virtualhost_global.conf
+	fi
+	
 	for CPANELUSER in $(cat /etc/domainusers|sort -u|cut -d: -f1); do
 		/opt/nDeploy/scripts/generate_config.py $CPANELUSER
 	done
@@ -101,6 +106,19 @@ function disable {
 	fi
 	#/scripts/restartsrv httpd
 	service httpd restart
+}
+
+function install_modremoteip{
+	[ -z "`grep remoteip_module /etc/httpd/conf/includes/pre_main_2.conf`" ] && return 0
+	cd /tmp
+	rm *.la *.lo *.o *.slo -v
+	wget https://svn.apache.org/repos/asf/httpd/httpd/branches/2.4.x/modules/metadata/mod_remoteip.c
+	apxs -ciA -n mod_remoteip mod_remoteip.c
+	rm /tmp/mod_remoteip.*
+	
+	echo "LoadModule remoteip_module modules/mod_remoteip.so" >> /etc/httpd/conf/includes/pre_main_2.conf
+	echo "RemoteIPHeader X-Real-IP" >> /etc/httpd/conf/includes/pre_main_2.conf
+	echo "RemoteIPInternalProxy $(ip -o -4 addr | awk '{ print $4}' | awk -F/ '{print $1}' |xargs)" >> /etc/httpd/conf/includes/pre_main_2.conf
 }
 
 case "$1" in

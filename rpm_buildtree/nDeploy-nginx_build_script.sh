@@ -3,7 +3,7 @@
 
 ##Vars
 NGINX_VERSION="1.9.10"
-NGINX_RPM_ITER="8.el6"
+NGINX_RPM_ITER="9.el6"
 #NPS_VERSION="1.9.32.6"
 #MY_RUBY_VERSION="2.2.3"
 #PASSENGER_VERSION="5.0.20"
@@ -72,5 +72,6 @@ mkdir -p var/log/nginx
 mkdir -p var/run
 chmod +x etc/rc.d/init.d/nginx
 chmod 644 etc/nginx/testcookie/testcookie_html/*
+chmod 755 etc/nginx/status_html -Rv
 
 fpm -s dir -t rpm -C ../nginx-pkg-64 --vendor "AMPLICA" --version ${NGINX_VERSION} --iteration ${NGINX_RPM_ITER} -a $(arch) -m admin@amplica.md -e --description "nDeploy custom nginx package" --url http://amplica.md --conflicts nginx -d zlib -d openssl -d pcre -d libcurl --config-files /etc/nginx --after-install ../after_nginx_install --before-remove ../after_nginx_uninstall --name nginx-nDeploy .
