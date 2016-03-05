@@ -70,6 +70,7 @@ cd ../nginx-pkg-64
 #mkdir -p var/cache/nginx/ngx_pagespeed
 mkdir -p var/log/nginx
 mkdir -p var/run
+mkdir -p var/cache/nginx/proxycache
 chmod +x etc/rc.d/init.d/nginx
 chmod 644 etc/nginx/testcookie/testcookie_html/*
 chmod 755 etc/nginx/status_html -Rv

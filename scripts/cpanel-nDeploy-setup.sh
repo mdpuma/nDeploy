@@ -4,7 +4,8 @@ function enable {
 	echo -e '\e[93m Modifying apache http and https port in cpanel \e[0m'
 	sed -i "s/apache_port.*/apache_port=0.0.0.0:8000/" /var/cpanel/cpanel.config
 	sed -i "s/apache_ssl_port.*/apache_ssl_port=0.0.0.0:4430/" /var/cpanel/cpanel.config
-	sed -i "s/service[httpd]=80,/service[httpd]=8000,/" /etc/chkserv.d/httpd
+	sed -i 's/service\[httpd\]=80,/service[httpd]=8000,/' /etc/chkserv.d/httpd
+	echo 'service[nginx]=80,GET / HTTP/1.0,HTTP/1..,/etc/init.d/nginx restart' > /etc/chkserv.d/nginx
 	#/usr/local/cpanel/whostmgr/bin/whostmgr2 --updatetweaksettings > /dev/null
 	/usr/local/cpanel/libexec/tailwatchd --restart
 	
@@ -21,23 +22,24 @@ function enable {
 		sed -i "s/CustomLog/#CustomLog/" /var/cpanel/templates/apache2_4/ssl_vhost.local
 	fi
 	
-#	Unsupported apache 2.2 in WHM 11.54
-#	if [ -f /var/cpanel/templates/apache2_2/vhost.local ];then
-#		sed -i "s/CustomLog/#CustomLog/" /var/cpanel/templates/apache2_2/vhost.local
-#	else
-#		cp -p /var/cpanel/templates/apache2_2/vhost.default /var/cpanel/templates/apache2_2/vhost.local
-#		sed -i "s/CustomLog/#CustomLog/" /var/cpanel/templates/apache2_2/vhost.local
-#	fi
-#	if [ -f /var/cpanel/templates/apache2_2/ssl_vhost.local ];then
-#		sed -i "s/CustomLog/#CustomLog/" /var/cpanel/templates/apache2_2/ssl_vhost.local
-#	else
-#		cp -p /var/cpanel/templates/apache2_2/ssl_vhost.default /var/cpanel/templates/apache2_2/ssl_vhost.local
-#		sed -i "s/CustomLog/#CustomLog/" /var/cpanel/templates/apache2_2/ssl_vhost.local
-#	fi
+	if [ -d /var/cpanel/templates/apache2_2 ]; then
+		if [ -f /var/cpanel/templates/apache2_2/vhost.local ];then
+			sed -i "s/CustomLog/#CustomLog/" /var/cpanel/templates/apache2_2/vhost.local
+		else
+			cp -p /var/cpanel/templates/apache2_2/vhost.default /var/cpanel/templates/apache2_2/vhost.local
+			sed -i "s/CustomLog/#CustomLog/" /var/cpanel/templates/apache2_2/vhost.local
+		fi
+		if [ -f /var/cpanel/templates/apache2_2/ssl_vhost.local ];then
+			sed -i "s/CustomLog/#CustomLog/" /var/cpanel/templates/apache2_2/ssl_vhost.local
+		else
+			cp -p /var/cpanel/templates/apache2_2/ssl_vhost.default /var/cpanel/templates/apache2_2/ssl_vhost.local
+			sed -i "s/CustomLog/#CustomLog/" /var/cpanel/templates/apache2_2/ssl_vhost.local
+		fi
+	fi
 	
-	install_modremoteip
+	install_modremoteip 2>/dev/null
 	
-	if [ -z "`grep HTTPS=on /usr/local/apache/conf/includes/pre_virtualhost_global.conf`" ]; do
+	if [ -z "`grep HTTPS=on /usr/local/apache/conf/includes/pre_virtualhost_global.conf`" ]; then
 		echo "SetEnvIf X-Forwarded-Proto https HTTPS=on" >> /usr/local/apache/conf/includes/pre_virtualhost_global.conf
 	fi
 	
@@ -74,12 +76,15 @@ function disable {
 	echo -e '\e[93m Reverting apache http and https port in cpanel \e[0m'
 	sed -i "s/apache_port.*/apache_port=0.0.0.0:80/" /var/cpanel/cpanel.config
 	sed -i "s/apache_ssl_port.*/apache_ssl_port=0.0.0.0:443/" /var/cpanel/cpanel.config
-	sed -i "s/service[httpd]=8000,/service[httpd]=80,/" /etc/chkserv.d/httpd
+	sed -i 's/service\[httpd\]=8000,/service[httpd]=80,/' /etc/chkserv.d/httpd
+	rm /etc/chkserv.d/nginx
 	/usr/local/cpanel/whostmgr/bin/whostmgr2 --updatetweaksettings > /dev/null
 	/usr/local/cpanel/libexec/tailwatchd --restart
 	
-	sed -i "s/#CustomLog/CustomLog/" /var/cpanel/templates/apache2_2/vhost.local
-	sed -i "s/#CustomLog/CustomLog/" /var/cpanel/templates/apache2_2/ssl_vhost.local
+	if [ -d /var/cpanel/templates/apache2_2 ]; then
+		sed -i "s/#CustomLog/CustomLog/" /var/cpanel/templates/apache2_2/vhost.local
+		sed -i "s/#CustomLog/CustomLog/" /var/cpanel/templates/apache2_2/ssl_vhost.local
+	fi
 	sed -i "s/#CustomLog/CustomLog/" /var/cpanel/templates/apache2_4/vhost.local
 	sed -i "s/#CustomLog/CustomLog/" /var/cpanel/templates/apache2_4/ssl_vhost.local
 	
@@ -108,8 +113,8 @@ function disable {
 	service httpd restart
 }
 
-function install_modremoteip{
-	[ -z "`grep remoteip_module /etc/httpd/conf/includes/pre_main_2.conf`" ] && return 0
+function install_modremoteip {
+	[[ -n "`grep remoteip_module /etc/httpd/conf/includes/pre_main_2.conf`" ]] && return 0
 	cd /tmp
 	rm *.la *.lo *.o *.slo -v
 	wget https://svn.apache.org/repos/asf/httpd/httpd/branches/2.4.x/modules/metadata/mod_remoteip.c
