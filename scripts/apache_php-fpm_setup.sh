@@ -5,7 +5,8 @@ function enable {
 	minorver=$(httpd -v|grep "Server version:"|awk '{print $3}'|awk -F'/' '{print $2}'|awk -F'.' '{print $2}')
 	patchlevel=$(httpd -v|grep "Server version:"|awk '{print $3}'|awk -F'/' '{print $2}'|awk -F'.' '{print $3}')
 	
-	/usr/local/apache/bin/apachectl -l|grep mod_proxy_fcgi >/dev/null 2>&1
+	# /usr/local/apache/bin/apachectl -l|grep mod_proxy_fcgi >/dev/null 2>&1
+	httpd -M 2>&1 |grep proxy_fcgi >/dev/null 2>&1
 	if [ $? -ne 0 ]; then
 		if [ -f /var/cpanel/easy/apache/rawopts/Apache2_4 ];then 
 			grep 'enable-proxy-fcgi=static' /var/cpanel/easy/apache/rawopts/Apache2_4 || echo '--enable-proxy-fcgi=static' >> /var/cpanel/easy/apache/rawopts/Apache2_4

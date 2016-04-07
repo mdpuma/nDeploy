@@ -1,18 +1,19 @@
 #!/bin/bash
 
 VERSION=5.4.45
-EXTENSIONS="zendopcache imagick pdo_firebird memcache uploadprogress"
+EXTENSIONS="zendopcache imagick"
 
 source ~/.phpbrew/bashrc
 
 # compile & install
-php -n /usr/bin/phpbrew install --jobs 12 $VERSION +default +fpm +mysql +exif +ftp +gd +intl +soap +pdo +curl +gmp +imap +iconv +sqlite +gettext -- --with-libdir=lib64 --with-gd=shared --enable-gd-natf --with-jpeg-dir=/usr --with-png-dir=/usr
-
-# mkdir php-fpm.d
-mkdir /usr/local/phpbrew/php/php-$ver/etc/php-fpm.d -p
+phpbrew install --jobs 12 --name php-5.4.45-ioncube $VERSION +default +fpm +mysql +exif +ftp +gd +intl +soap +pdo +curl +gmp +imap +iconv +sqlite +gettext -- --with-libdir=lib64 --with-gd=shared --enable-gd-natf --with-jpeg-dir=/usr --with-png-dir=/usr
 
 # switch
+source ~/.phpbrew/bashrc
 phpbrew use $VERSION
+
+# mkdir php-fpm.d
+mkdir /usr/local/phpbrew/php/$PHPBREW_PHP/etc/php-fpm.d -p
 
 # install extensions
 for i in $EXTENSIONS; do

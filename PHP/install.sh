@@ -1,8 +1,10 @@
 #!/bin/sh
 
-yum install libmcrypt-devel openssl-devel gmp-devel curl-devel libcurl-devel libcurlssl-devel libicu-devel -y
+yum install libmcrypt-devel openssl-devel gmp-devel curl-devel libcurl-devel libcurlssl-devel libicu-devel bzip2-devel -y
 yum install firebird-devel -y
 yum install ImageMagick-devel sqlite-devel freetds-devel freetds
+
+yum install ImageMagick-devel
 
 curl -L -O https://github.com/phpbrew/phpbrew/raw/master/phpbrew
 chmod +x phpbrew
