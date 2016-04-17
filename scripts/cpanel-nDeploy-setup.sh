@@ -9,17 +9,19 @@ function enable {
 	#/usr/local/cpanel/whostmgr/bin/whostmgr2 --updatetweaksettings > /dev/null
 	/usr/local/cpanel/libexec/tailwatchd --restart
 	
-	if [ -f /var/cpanel/templates/apache2_4/vhost.local ];then
-		sed -i "s/CustomLog/#CustomLog/" /var/cpanel/templates/apache2_4/vhost.local
-	else
-		cp -p /var/cpanel/templates/apache2_4/vhost.default /var/cpanel/templates/apache2_4/vhost.local
-		sed -i "s/CustomLog/#CustomLog/" /var/cpanel/templates/apache2_4/vhost.local
-	fi
-	if [ -f /var/cpanel/templates/apache2_4/ssl_vhost.local ];then
-		sed -i "s/CustomLog/#CustomLog/" /var/cpanel/templates/apache2_4/ssl_vhost.local
-	else
-		cp -p /var/cpanel/templates/apache2_4/ssl_vhost.default /var/cpanel/templates/apache2_4/ssl_vhost.local
-		sed -i "s/CustomLog/#CustomLog/" /var/cpanel/templates/apache2_4/ssl_vhost.local
+	if [ -d /var/cpanel/templates/apache2_4 ]; then
+		if [ -f /var/cpanel/templates/apache2_4/vhost.local ];then
+			sed -i "s/CustomLog/#CustomLog/" /var/cpanel/templates/apache2_4/vhost.local
+		else
+			cp -p /var/cpanel/templates/apache2_4/vhost.default /var/cpanel/templates/apache2_4/vhost.local
+			sed -i "s/CustomLog/#CustomLog/" /var/cpanel/templates/apache2_4/vhost.local
+		fi
+		if [ -f /var/cpanel/templates/apache2_4/ssl_vhost.local ];then
+			sed -i "s/CustomLog/#CustomLog/" /var/cpanel/templates/apache2_4/ssl_vhost.local
+		else
+			cp -p /var/cpanel/templates/apache2_4/ssl_vhost.default /var/cpanel/templates/apache2_4/ssl_vhost.local
+			sed -i "s/CustomLog/#CustomLog/" /var/cpanel/templates/apache2_4/ssl_vhost.local
+		fi
 	fi
 	
 	if [ -d /var/cpanel/templates/apache2_2 ]; then
@@ -43,8 +45,10 @@ function enable {
 		echo "SetEnvIf X-Forwarded-Proto https HTTPS=on" >> /usr/local/apache/conf/includes/pre_virtualhost_global.conf
 	fi
 	
+	echo -n "Rebuild:"
 	for CPANELUSER in $(cat /etc/domainusers|sort -u|cut -d: -f1); do
 		/opt/nDeploy/scripts/generate_config.py $CPANELUSER
+		echo -n " $CPANELUSER";
 	done
 	
 	echo -e '\e[93m Rebuilding Apache httpd backend configs and restarting daemons \e[0m'
