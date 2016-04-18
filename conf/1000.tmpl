@@ -1,4 +1,3 @@
-#PAGESPEED_NOT_ENABLED;
 #Proxy Pass to a backend webserver listening on port 8000
 
 include /etc/nginx/testcookie/testcookie_aes_locations.conf;
@@ -6,13 +5,12 @@ include /etc/nginx/testcookie/testcookie_aes_locations.conf;
 # proxy_redirect off;
 
 location / {
-	testcookie on;
+	#TESTCOOKIE
 	
 	limit_req zone=rate_10 burst=10;
 	proxy_pass http://PROXYLOCATION;
 }
 location ~* ^.+\.(jpg|jpeg|gif|png|ico|css|js|zip|tgz|gz|rar|bz2|doc|xls|exe|pdf|ppt|txt|tar|bmp|rtf|swf)$ {
-	testcookie off;
 	root    DOCUMENTROOT;
 	
 	expires 1d;
@@ -23,7 +21,7 @@ location ~* ^.+\.(jpg|jpeg|gif|png|ico|css|js|zip|tgz|gz|rar|bz2|doc|xls|exe|pdf
 	access_log off;
 }
 location @fallback {
-	testcookie on;
+	#TESTCOOKIE
 	
 	limit_req zone=rate_10 burst=10;
 	proxy_pass http://PROXYLOCATION;

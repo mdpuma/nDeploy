@@ -5,4 +5,4 @@ customconf: '0'
 testconf: '0'
 profile: '1000'
 user: CPANELUSER
-pagespeed: '0'
+testcookie: '0'

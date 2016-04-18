@@ -22,7 +22,6 @@ __email__ = "anoop.alias@piserve.com"
 
 installation_path = "/opt/nDeploy"  # Absolute Installation Path
 nginx_bin = "/usr/sbin/nginx"
-pagespeed_include_location = "include /etc/nginx/conf.d/pagespeed.conf"
 
 # Function defs
 
@@ -197,11 +196,11 @@ def nginx_confgen_profilegen(user_name, domain_name, cpanelip, document_root, ss
             if profile_category == "PHP":
                 phpversion = yaml_parsed_profileyaml.get('backend_version')
                 php_path = yaml_parsed_profileyaml.get('backend_path')
-                pagespeed_status = str(yaml_parsed_profileyaml.get('pagespeed'))
-                if pagespeed_status == "0":
-                    pagespeed_include = "#PAGESPEED_NOT_ENABLED"
+                testcookie_status = str(yaml_parsed_profileyaml.get('testcookie'))
+                if testcookie_status == "0":
+                    testcookie_include = "#TESTCOOKIE"
                 else:
-                    pagespeed_include = pagespeed_include_location
+                    testcookie_include = 'testcookie on;'
                 path_to_socket = php_path + "/var/run/" + user_name + ".sock"
                 php_profile_set(user_name, phpversion, php_path)
                 profile_template_file = open(installation_path + "/conf/" + profile_code + ".tmpl", 'r')
@@ -211,17 +210,17 @@ def nginx_confgen_profilegen(user_name, domain_name, cpanelip, document_root, ss
                     line = line.replace('DOMAINNAME', domain_name)
                     line = line.replace('DOCUMENTROOT', document_root)
                     line = line.replace('SOCKETFILE', path_to_socket)
-                    line = line.replace('#PAGESPEED_NOT_ENABLED', pagespeed_include)
+                    line = line.replace('#TESTCOOKIE', testcookie_include)
                     profile_config_out.write(line)
                 profile_template_file.close()
                 profile_config_out.close()
             elif profile_category == "HHVM_NOBODY":
                 hhvm_nobody_socket = yaml_parsed_profileyaml.get('backend_path')
-                pagespeed_status = str(yaml_parsed_profileyaml.get('pagespeed'))
-                if pagespeed_status == "0":
-                    pagespeed_include = "#PAGESPEED_NOT_ENABLED"
+                testcookie_status = str(yaml_parsed_profileyaml.get('testcookie'))
+                if testcookie_status == "0":
+                    testcookie_include = "#TESTCOOKIE"
                 else:
-                    pagespeed_include = pagespeed_include_location
+                    testcookie_include = 'testcookie on;'
                 profile_template_file = open(installation_path + "/conf/" + profile_code + ".tmpl", 'r')
                 profile_config_out = open(include_file, 'w')
                 for line in profile_template_file:
@@ -229,60 +228,60 @@ def nginx_confgen_profilegen(user_name, domain_name, cpanelip, document_root, ss
                     line = line.replace('DOMAINNAME', domain_name)
                     line = line.replace('DOCUMENTROOT', document_root)
                     line = line.replace('SOCKETFILE', hhvm_nobody_socket)
-                    line = line.replace('#PAGESPEED_NOT_ENABLED', pagespeed_include)
+                    line = line.replace('#TESTCOOKIE', testcookie_include)
                     profile_config_out.write(line)
                 profile_template_file.close()
                 profile_config_out.close()
             elif profile_category == "RUBY":
                 ruby_path = yaml_parsed_profileyaml.get('backend_path')
-                pagespeed_status = str(yaml_parsed_profileyaml.get('pagespeed'))
-                if pagespeed_status == "0":
-                    pagespeed_include = "#PAGESPEED_NOT_ENABLED"
+                testcookie_status = str(yaml_parsed_profileyaml.get('testcookie'))
+                if testcookie_status == "0":
+                    testcookie_include = "#TESTCOOKIE"
                 else:
-                    pagespeed_include = pagespeed_include_location
+                    testcookie_include = 'testcookie on;'
                 profile_template_file = open(installation_path + "/conf/" + profile_code + ".tmpl", 'r')
                 profile_config_out = open(include_file, 'w')
                 for line in profile_template_file:
                     line = line.replace('CPANELIP', cpanelip)
                     line = line.replace('DOMAINNAME', domain_name)
                     line = line.replace('DOCUMENTROOT', document_root)
-                    line = line.replace('#PAGESPEED_NOT_ENABLED', pagespeed_include)
+                    line = line.replace('#TESTCOOKIE', testcookie_include)
                     line = line.replace('PATHTORUBY', ruby_path)
                     profile_config_out.write(line)
                 profile_template_file.close()
                 profile_config_out.close()
             elif profile_category == "PYTHON":
                 python_path = yaml_parsed_profileyaml.get('backend_path')
-                pagespeed_status = str(yaml_parsed_profileyaml.get('pagespeed'))
-                if pagespeed_status == "0":
-                    pagespeed_include = "#PAGESPEED_NOT_ENABLED"
+                testcookie_status = str(yaml_parsed_profileyaml.get('testcookie'))
+                if testcookie_status == "0":
+                    testcookie_include = "#TESTCOOKIE"
                 else:
-                    pagespeed_include = pagespeed_include_location
+                    testcookie_include = 'testcookie on;'
                 profile_template_file = open(installation_path + "/conf/" + profile_code + ".tmpl", 'r')
                 profile_config_out = open(include_file, 'w')
                 for line in profile_template_file:
                     line = line.replace('CPANELIP', cpanelip)
                     line = line.replace('DOMAINNAME', domain_name)
                     line = line.replace('DOCUMENTROOT', document_root)
-                    line = line.replace('#PAGESPEED_NOT_ENABLED', pagespeed_include)
+                    line = line.replace('#TESTCOOKIE', testcookie_include)
                     line = line.replace('PATHTOPYTHON', python_path)
                     profile_config_out.write(line)
                 profile_template_file.close()
                 profile_config_out.close()
             elif profile_category == "NODEJS":
                 nodejs_path = yaml_parsed_profileyaml.get('backend_path')
-                pagespeed_status = str(yaml_parsed_profileyaml.get('pagespeed'))
-                if pagespeed_status == "0":
-                    pagespeed_include = "#PAGESPEED_NOT_ENABLED"
+                testcookie_status = str(yaml_parsed_profileyaml.get('testcookie'))
+                if testcookie_status == "0":
+                    testcookie_include = "#TESTCOOKIE"
                 else:
-                    pagespeed_include = pagespeed_include_location
+                    testcookie_include = 'testcookie on;'
                 profile_template_file = open(installation_path + "/conf/" + profile_code + ".tmpl", 'r')
                 profile_config_out = open(include_file, 'w')
                 for line in profile_template_file:
                     line = line.replace('CPANELIP', cpanelip)
                     line = line.replace('DOMAINNAME', domain_name)
                     line = line.replace('DOCUMENTROOT', document_root)
-                    line = line.replace('#PAGESPEED_NOT_ENABLED', pagespeed_include)
+                    line = line.replace('#TESTCOOKIE', testcookie_include)
                     line = line.replace('PATHTONODEJS', nodejs_path)
                     profile_config_out.write(line)
                 profile_template_file.close()
@@ -290,11 +289,11 @@ def nginx_confgen_profilegen(user_name, domain_name, cpanelip, document_root, ss
             else:
                 proxytype = yaml_parsed_profileyaml.get('backend_version')
                 proxy_port = str(yaml_parsed_profileyaml.get('backend_path'))
-                pagespeed_status = str(yaml_parsed_profileyaml.get('pagespeed'))
-                if pagespeed_status == "0":
-                    pagespeed_include = "#PAGESPEED_NOT_ENABLED"
+                testcookie_status = str(yaml_parsed_profileyaml.get('testcookie'))
+                if testcookie_status == "0":
+                    testcookie_include = "#TESTCOOKIE"
                 else:
-                    pagespeed_include = pagespeed_include_location
+                    testcookie_include = 'testcookie on;'
                 proxy_path = cpanelip + ":" + proxy_port
                 profile_template_file = open(installation_path + "/conf/" + profile_code + ".tmpl", 'r')
                 profile_config_out = open(include_file, 'w')
@@ -303,7 +302,7 @@ def nginx_confgen_profilegen(user_name, domain_name, cpanelip, document_root, ss
                     line = line.replace('DOMAINNAME', domain_name)
                     line = line.replace('PROXYLOCATION', proxy_path)
                     line = line.replace('DOCUMENTROOT', document_root)
-                    line = line.replace('#PAGESPEED_NOT_ENABLED', pagespeed_include)
+                    line = line.replace('#TESTCOOKIE', testcookie_include)
                     profile_config_out.write(line)
                 profile_template_file.close()
                 profile_config_out.close()

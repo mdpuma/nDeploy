@@ -1,16 +1,14 @@
-#PAGESPEED_NOT_ENABLED;
 root DOCUMENTROOT;
 index index.php index.html index.htm;
 
 include /etc/nginx/testcookie/testcookie_aes_locations.conf;
 
 location / {
-	testcookie on;
+	#TESTCOOKIE
 	try_files $uri $uri/ /index.php?q=$uri&$args;
 }
 
 location ~* ^.+\.(jpg|jpeg|gif|png|ico|css|js|zip|tgz|gz|rar|bz2|doc|xls|exe|pdf|ppt|txt|tar|bmp|rtf|swf)$ {
-	testcookie off;
 	try_files $uri =404;
 	
 	expires 1d;
@@ -21,7 +19,7 @@ location ~* ^.+\.(jpg|jpeg|gif|png|ico|css|js|zip|tgz|gz|rar|bz2|doc|xls|exe|pdf
 }
 
 location ~ \.php$ {
-	testcookie on;
+	#TESTCOOKIE
 	try_files $uri =404;
 	fastcgi_pass unix:SOCKETFILE;
 	fastcgi_index index.php;
@@ -29,7 +27,7 @@ location ~ \.php$ {
 }
 
 location @fallback {
-	testcookie on;
+	#TESTCOOKIE
 	fastcgi_pass unix:SOCKETFILE;
 	fastcgi_index index.php;
 	include /etc/nginx/fastcgi_params;

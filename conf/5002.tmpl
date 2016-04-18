@@ -1,4 +1,3 @@
-#PAGESPEED_NOT_ENABLED;
 root DOCUMENTROOT;
 
 index index.php index.html index.htm default.html default.htm;
@@ -7,7 +6,7 @@ include /etc/nginx/testcookie/testcookie_aes_locations.conf;
 
 # Support Clean (aka Search Engine Friendly) URLs
 location / {
-	testcookie on;
+	#TESTCOOKIE
 	try_files $uri $uri/ /index.php?$args;
 }
 
@@ -20,19 +19,17 @@ location ~* /(images|cache|media|logs|tmp)/.*\.(php|pl|py|jsp|asp|sh|cgi)$ {
 # caching of files 
 location ~* \.(ico|pdf|flv)$ {
 	gzip on;
-	testcookie off;
 	expires 1y;
 	access_log off;
 }
 location ~* \.(js|css|png|jpg|jpeg|gif|swf|xml|txt)$ {
 	gzip on;
-	testcookie off;
 	expires 1d;
 	access_log off;
 }
 
 location ~ \.php$ {
-	testcookie on;
+	#TESTCOOKIE
 	try_files $uri @joomla;
 	fastcgi_pass unix:SOCKETFILE;
 	fastcgi_index index.php;

@@ -77,9 +77,9 @@ if form.getvalue('domain'):
             update_config_test_status(profileyaml, 1)
             print('<p style="background-color:LightGrey">(!) Custom config with errors will not be activated </p>')
             print(('<p style="background-color:LightGrey">(!) All custom edits are saved in ' + myhome + '/' + mydomain + '_nginx.include.custom.conf'+'</p>'))
-        elif form.getvalue('version') and form.getvalue('pcode') and form.getvalue('pagespeed') and form.getvalue('backend'):
+        elif form.getvalue('version') and form.getvalue('pcode') and form.getvalue('testrobot') and form.getvalue('backend'):
             mypcode = form.getvalue('pcode')
-            mypagespeed = form.getvalue('pagespeed')
+            mytestcookie = form.getvalue('testrobot')
             mybackend = form.getvalue('backend')
             myversion = form.getvalue('version')
             backends_branch_dict = backend_data_yaml_parsed[mybackend]
@@ -88,7 +88,7 @@ if form.getvalue('domain'):
             yaml_parsed_profileyaml['backend_category'] = mybackend
             yaml_parsed_profileyaml['backend_version'] = myversion
             yaml_parsed_profileyaml['profile'] = mypcode
-            yaml_parsed_profileyaml['pagespeed'] = mypagespeed
+            yaml_parsed_profileyaml['testcookie'] = mytestcookie
             with open(profileyaml, 'w') as yaml_file:
                 yaml_file.write(yaml.dump(yaml_parsed_profileyaml, default_flow_style=False))
             yaml_file.close()
