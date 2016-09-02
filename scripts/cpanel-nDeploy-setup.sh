@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 function enable {
 	echo -e '\e[93m Modifying apache http and https port in cpanel \e[0m'
@@ -9,7 +9,7 @@ function enable {
 	#/usr/local/cpanel/whostmgr/bin/whostmgr2 --updatetweaksettings > /dev/null
 	/usr/local/cpanel/libexec/tailwatchd --restart
 	
-	if [ -d /var/cpanel/templates/apache2_4 ]; then
+	if [ -f /var/cpanel/templates/apache2_4/vhost.default ]; then
 		if [ -f /var/cpanel/templates/apache2_4/vhost.local ];then
 			sed -i "s/CustomLog/#CustomLog/" /var/cpanel/templates/apache2_4/vhost.local
 		else
@@ -24,7 +24,7 @@ function enable {
 		fi
 	fi
 	
-	if [ -d /var/cpanel/templates/apache2_2 ]; then
+	if [ -f /var/cpanel/templates/apache2_2/vhost.default ]; then
 		if [ -f /var/cpanel/templates/apache2_2/vhost.local ];then
 			sed -i "s/CustomLog/#CustomLog/" /var/cpanel/templates/apache2_2/vhost.local
 		else
@@ -85,12 +85,14 @@ function disable {
 	/usr/local/cpanel/whostmgr/bin/whostmgr2 --updatetweaksettings > /dev/null
 	/usr/local/cpanel/libexec/tailwatchd --restart
 	
-	if [ -d /var/cpanel/templates/apache2_2 ]; then
+	if [ -f /var/cpanel/templates/apache2_2/vhost.local ]; then
 		sed -i "s/#CustomLog/CustomLog/" /var/cpanel/templates/apache2_2/vhost.local
 		sed -i "s/#CustomLog/CustomLog/" /var/cpanel/templates/apache2_2/ssl_vhost.local
 	fi
-	sed -i "s/#CustomLog/CustomLog/" /var/cpanel/templates/apache2_4/vhost.local
-	sed -i "s/#CustomLog/CustomLog/" /var/cpanel/templates/apache2_4/ssl_vhost.local
+	if [ -f /var/cpanel/templates/apache2_4/vhost.local ]; then
+		sed -i "s/#CustomLog/CustomLog/" /var/cpanel/templates/apache2_4/vhost.local
+		sed -i "s/#CustomLog/CustomLog/" /var/cpanel/templates/apache2_4/ssl_vhost.local
+	fi
 	
 	sed -i '/SetEnvIf X-Forwarded-Proto https HTTPS=on/d' /usr/local/apache/conf/includes/pre_virtualhost_global.conf
 	
@@ -118,16 +120,17 @@ function disable {
 }
 
 function install_modremoteip {
-	[[ -n "`grep remoteip_module /etc/httpd/conf/includes/pre_main_2.conf`" ]] && return 0
+	set +o errexit
+	[[ -n "`grep remoteip_module /usr/local/apache/conf/includes/pre_main_2.conf`" ]] && return 0
 	cd /tmp
 	rm *.la *.lo *.o *.slo -v
 	wget https://svn.apache.org/repos/asf/httpd/httpd/branches/2.4.x/modules/metadata/mod_remoteip.c
 	apxs -ciA -n mod_remoteip mod_remoteip.c
 	rm /tmp/mod_remoteip.*
 	
-	echo "LoadModule remoteip_module modules/mod_remoteip.so" >> /etc/httpd/conf/includes/pre_main_2.conf
-	echo "RemoteIPHeader X-Real-IP" >> /etc/httpd/conf/includes/pre_main_2.conf
-	echo "RemoteIPInternalProxy $(ip -o -4 addr | awk '{ print $4}' | awk -F/ '{print $1}' |xargs)" >> /etc/httpd/conf/includes/pre_main_2.conf
+	echo "LoadModule remoteip_module modules/mod_remoteip.so" >> /usr/local/apache/conf/includes/pre_main_2.conf
+	echo "RemoteIPHeader X-Real-IP" >> /usr/local/apache/conf/includes/pre_main_2.conf
+	echo "RemoteIPInternalProxy $(ip -o -4 addr | awk '{ print $4}' | awk -F/ '{print $1}' |xargs)" >> /usr/local/apache/conf/includes/pre_main_2.conf
 }
 
 case "$1" in

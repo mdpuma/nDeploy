@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 VERSION=5.4.45
 EXTENSIONS="zendopcache imagick"
@@ -6,7 +6,7 @@ EXTENSIONS="zendopcache imagick"
 source ~/.phpbrew/bashrc
 
 # compile & install
-phpbrew install --jobs 12 --name php-5.4.45-ioncube $VERSION +default +fpm +mysql +exif +ftp +gd +intl +soap +pdo +curl +gmp +imap +iconv +sqlite +gettext -- --with-libdir=lib64 --with-gd=shared --enable-gd-natf --with-jpeg-dir=/usr --with-png-dir=/usr
+php -d memory_limit=512M -d disable_functions= /usr/bin/phpbrew install --jobs 12 $VERSION +default +fpm +mysql +exif +ftp +gd +intl +soap +pdo +curl +gmp +imap +iconv +sqlite +gettext -- --with-libdir=lib64 --with-gd=shared --enable-gd-natf --with-jpeg-dir=/usr --with-png-dir=/usr
 
 # switch
 source ~/.phpbrew/bashrc

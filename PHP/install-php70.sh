@@ -1,23 +1,23 @@
-#!/bin/bash
+#!/bin/bash -e
 
-VERSION=7.0.7
-EXTENSIONS="opcache imagick pdo_firebird memcache uploadprogress"
+VERSION=7.0.10
+EXTENSIONS="opcache imagick memcache uploadprogress"
 
 source ~/.phpbrew/bashrc
 
 # first, apply patch and autoconf
-php -n /usr/bin/phpbrew install --patch php-fpm.5.4.dl.v2.patch --no-install --no-configure $VERSION
-cd /usr/local/phpbrew/build/php-$VERSION; ./buildconf --force
+# php -n /usr/bin/phpbrew install --patch php-fpm.5.4.dl.v2.patch --no-install --no-configure $VERSION
+# cd /usr/local/phpbrew/build/php-$VERSION; ./buildconf --force
 
 # compile & install
-php -n /usr/bin/phpbrew install --jobs 12 $VERSION +default +fpm +mysql +exif +ftp +gd +intl +soap +pdo +curl +gmp +imap +iconv +sqlite +gettext -- --with-libdir=lib64 --with-gd=shared --enable-gd-natf --with-jpeg-dir=/usr --with-png-dir=/usr
+php -d memory_limit=512M -d disable_functions= /usr/bin/phpbrew install --jobs 12 $VERSION +default +fpm +mysql +exif +ftp +gd +intl +soap +pdo +curl +gmp +imap +iconv +sqlite +gettext -- --with-libdir=lib64 --with-gd=shared --enable-gd-natf --with-jpeg-dir=/usr --with-png-dir=/usr
 
 # switch
 source ~/.phpbrew/bashrc
 phpbrew use $VERSION
 
 # mkdir php-fpm.d
-mkdir /usr/local/phpbrew/php/php-$VERSION/etc/php-fpm.d -p
+mkdir /usr/local/phpbrew/php/$PHPBREW_PHP/etc/php-fpm.d -p
 
 # install extensions
 for i in $EXTENSIONS; do
@@ -29,6 +29,6 @@ for i in $EXTENSIONS; do
 done
 
 # enable gd
-echo extension=gd.so >> /usr/local/phpbrew/php/php-$VERSION/var/db/gd.ini
+echo extension=gd.so >> /usr/local/phpbrew/php/$PHPBREW_PHP/var/db/gd.ini
 
-/opt/nDeploy/scripts/update_backend.py PHP php-$VERSION /usr/local/phpbrew/php/php-$VERSION
+/opt/nDeploy/scripts/update_backend.py PHP $PHPBREW_PHP /usr/local/phpbrew/php/$PHPBREW_PHP

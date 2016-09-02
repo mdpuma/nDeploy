@@ -89,6 +89,7 @@ sub reload{
 
 my ($action, $help, $php_ver);
 our $forced;
+$php_ver='';
 GetOptions (
 	"action=s" => \$action,
 	"help"     => \$help,

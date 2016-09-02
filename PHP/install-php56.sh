@@ -1,12 +1,12 @@
-#!/bin/bash
+#!/bin/bash -e
 
-VERSION=5.6.20
-EXTENSIONS="opcache imagick pdo_firebird memcache uploadprogress"
+VERSION=5.6.25
+EXTENSIONS="opcache imagick memcache uploadprogress"
 
 source ~/.phpbrew/bashrc
 
 # compile & install
-php -n /usr/bin/phpbrew install --jobs 12 $VERSION +default +fpm +mysql +exif +ftp +gd +intl +soap +pdo +curl +gmp +imap +iconv +sqlite +gettext -- --with-libdir=lib64 --with-gd=shared --enable-gd-natf --with-jpeg-dir=/usr --with-png-dir=/usr
+php -d memory_limit=512M -d disable_functions= /usr/bin/phpbrew install --jobs 12 $VERSION +default +fpm +mysql +exif +ftp +gd +intl +soap +pdo +curl +gmp +imap +iconv +sqlite +gettext -- --with-libdir=lib64 --with-gd=shared --enable-gd-natf --with-jpeg-dir=/usr --with-png-dir=/usr
 
 # switch
 source ~/.phpbrew/bashrc
