@@ -4,6 +4,8 @@ VERSION=5.4.45
 EXTENSIONS="zendopcache imagick"
 
 source ~/.phpbrew/bashrc
+export PHPBREW_ROOT="/usr/local/phpbrew"
+phpbrew update
 
 # compile & install
 php -d memory_limit=512M -d disable_functions= /usr/bin/phpbrew install --jobs 12 $VERSION +default +fpm +mysql +exif +ftp +gd +intl +soap +pdo +curl +gmp +imap +iconv +sqlite +gettext -- --with-libdir=lib64 --with-gd=shared --enable-gd-natf --with-jpeg-dir=/usr --with-png-dir=/usr
@@ -25,7 +27,7 @@ for i in $EXTENSIONS; do
 done
 
 # enable gd
-echo extension=gd.so >> /usr/local/phpbrew/php/$PHPBREW_PHP/var/db/gd.ini
+echo extension=gd.so > /usr/local/phpbrew/php/$PHPBREW_PHP/var/db/gd.ini
 
 # fix zendopcache
 sed -i '/extension/s/zendopcache/opcache/' /usr/local/phpbrew/php/$PHPBREW_PHP/var/db/zendopcache.ini
