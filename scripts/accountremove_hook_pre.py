@@ -18,7 +18,7 @@ __email__ = "anoop.alias@piserve.com"
 
 installation_path = "/opt/nDeploy"  # Absolute Installation Path
 backend_config_file = installation_path+"/conf/backends.yaml"
-nginx_dir = "/etc/nginx/sites-enabled/"
+nginx_dir = "/etc/nginx"
 
 
 def remove_file(fn):
@@ -62,26 +62,28 @@ sub_domains = yaml_parsed_cpaneluser.get('sub_domains')
 
 remove_file(installation_path+"/user-data/"+cpaneluser)
 remove_file(installation_path+"/domain-data/"+main_domain)
-remove_file(nginx_dir+main_domain+".conf")
-remove_file(nginx_dir+main_domain+".include")
+remove_file(nginx_dir+"/sites-enabled/"+main_domain+".conf")
+remove_file(nginx_dir+"/sites-enabled/"+main_domain+".include")
 
 subprocess.call("rm -rf /var/resin/hosts/"+main_domain, shell=True)
 if os.path.isfile("/var/cpanel/userdata/" + cpaneluser + "/" + main_domain + "_SSL"):
     remove_file(installation_path+"/domain-data/"+main_domain+"_SSL")
-    remove_file(nginx_dir+main_domain+"_SSL.conf")
-    remove_file(nginx_dir+main_domain+"_SSL.include")
+    remove_file(nginx_dir+"/sites-enabled/"+main_domain+"_SSL.conf")
+    remove_file(nginx_dir+"/sites-enabled/"+main_domain+"_SSL.include")
+    remove_file(nginx_dir+"/ssl/"+main_domain+".crt")
 for domain_in_subdomains in sub_domains:
     if domain_in_subdomains.startswith("*"):
         domain_in_subdomains_orig=domain_in_subdomains
         domain_in_subdomains="_wildcard_."+domain_in_subdomains.replace('*.','')
     remove_file(installation_path+"/domain-data/"+domain_in_subdomains)
-    remove_file(nginx_dir+domain_in_subdomains+".conf")
-    remove_file(nginx_dir+domain_in_subdomains+".include")
+    remove_file(nginx_dir+"/sites-enabled/"+domain_in_subdomains+".conf")
+    remove_file(nginx_dir+"/sites-enabled/"+domain_in_subdomains+".include")
     subprocess.call("rm -rf /var/resin/hosts/"+domain_in_subdomains, shell=True)
     if os.path.isfile("/var/cpanel/userdata/" + cpaneluser + "/" + domain_in_subdomains + "_SSL"):
         remove_file(installation_path+"/domain-data/"+domain_in_subdomains_orig+"_SSL")
-        remove_file(nginx_dir+domain_in_subdomains+"_SSL.conf")
-        remove_file(nginx_dir+domain_in_subdomains+"_SSL.include")
+        remove_file(nginx_dir+"/sites-enabled/"+domain_in_subdomains+"_SSL.conf")
+        remove_file(nginx_dir+"/sites-enabled/"+domain_in_subdomains+"_SSL.include")
+        remove_file(nginx_dir+"/ssl/"+domain_in_subdomains+".crt")
 remove_php_fpm_pool(cpaneluser)
 subprocess.call("/opt/nDeploy/scripts/init_backends.pl --action=reload", shell=True)
 subprocess.call("/opt/nDeploy/scripts/reload_nginx.sh >/dev/null 2>&1", shell=True)
