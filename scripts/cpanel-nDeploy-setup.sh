@@ -51,6 +51,8 @@ function enable {
 		echo -n " $CPANELUSER";
 	done
 	
+	/opt/nDeploy/scripts/generate_default_vhost_config.py
+	
 	echo -e '\e[93m Rebuilding Apache httpd backend configs and restarting daemons \e[0m'
 	/scripts/rebuildhttpdconf
 	#/scripts/restartsrv httpd
