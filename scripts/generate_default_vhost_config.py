@@ -42,7 +42,7 @@ templateLoader = jinja2.FileSystemLoader(installation_path + "/conf/templates")
 templateEnv = jinja2.Environment(loader=templateLoader)
 templateVars = {"HOSTNAME": hostname,
                 "MAINIP": mainip,
-                "CPIPLIST": ip_list,
+                "CPIPLIST": cpanel_ip_list,
                 "CPSRVDSSL": cpsrvdsslfile
                 }
 
@@ -62,12 +62,12 @@ with codecs.open('/etc/nginx/conf.d/cpanel_services.conf', 'w', 'utf-8') as cpan
 httpd_mod_remoteip_template = templateEnv.get_template('httpd_mod_remoteip.include.j2')
 httpd_mod_remoteip_config = httpd_mod_remoteip_template.render(templateVars)
 if os.path.isdir("/etc/apache"):
-    with codecs.open('/etc/apache2/conf.d/includes/mod_remoteip.include', 'w', 'utf-8') as httpd_mod_remoteip_config_file:
+    with codecs.open('/etc/apache2/conf.d/includes/httpd_mod_remoteip.include', 'w', 'utf-8') as httpd_mod_remoteip_config_file:
         httpd_mod_remoteip_config_file.write(httpd_mod_remoteip_config)
-    with codecs.open('/etc/apache2/conf.d/includes/post_virtualhost_2.conf', 'w+', 'utf-8') as httpd_post_virtualhost_2:
-        httpd_post_virtualhost_2.write("Include /etc/apache2/conf.d/includes/mod_remoteip.include")
+    with codecs.open('/etc/apache2/conf.d/includes/post_virtualhost_global.conf', 'w+', 'utf-8') as httpd_post_virtualhost_global:
+        httpd_post_virtualhost_global.write("Include /etc/apache2/conf.d/includes/httpd_mod_remoteip.include")
 else:
     with codecs.open('/etc/httpd/conf/includes/httpd_mod_remoteip.include', 'w', 'utf-8') as httpd_mod_remoteip_config_file:
         httpd_mod_remoteip_config_file.write(httpd_mod_remoteip_config)
-    with codecs.open('/etc/httpd/conf/includes/post_virtualhost_2.conf', 'w+', 'utf-8') as httpd_post_virtualhost_2:
-        httpd_post_virtualhost_2.write("Include /etc/apache2/conf.d/includes/mod_remoteip.include")
+    with codecs.open('/etc/httpd/conf/includes/post_virtualhost_global.conf', 'w+', 'utf-8') as httpd_post_virtualhost_global:
+        httpd_post_virtualhost_global.write("Include \"/etc/apache2/conf.d/includes/httpd_mod_remoteip.include\"")

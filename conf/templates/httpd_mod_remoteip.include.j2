@@ -1,7 +1,7 @@
 # LoadModule remoteip_module modules/mod_remoteip.so
 <IfModule remoteip_module>
   RemoteIPHeader X-Forwarded-For
-  RemoteIPInternalProxy 127.0.0.1 {% for MYIP in CPIPLIST %}{{ MYIP }}{% endfor %}
+  RemoteIPInternalProxy 127.0.0.1{% for MYIP in CPIPLIST %} {{ MYIP }}{% endfor %}
 </IfModule>
 
 <IfModule log_config_module>
