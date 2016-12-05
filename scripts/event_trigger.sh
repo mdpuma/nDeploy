@@ -1,9 +1,9 @@
 #!/bin/bash
 # Call example 
-# When is changed something from /var/cpanel/userdata
+# When is changed something from /var/cpanel/userdata ['create', 'modify', 'delete']
 #     /opt/nDeploy/scripts/event_trigger.sh $filename 0 $tflags
 #
-# When is changed something from /opt/nDeploy/domain-data
+# When is changed something from /opt/nDeploy/domain-data ['modify' , 'atrribute_change']
 #     /opt/nDeploy/scripts/event_trigger.sh $filename 1 $tflags
 # 
 # When is changed something from /opt/nDeploy/userdata-data
@@ -37,9 +37,11 @@ case "$2" in
 		if [ $3 == "IN_DELETE" ]; then
 			DOMAIN=$(echo $1|awk -F'/' '{print $6}')
 			if [ -f /opt/nDeploy/domain-data/$DOMAIN ] && [ -n "$DOMAIN" ]; then
-				rm -f /etc/nginx/sites-enabled/${DOMAIN}.conf /etc/nginx/sites-enabled/${DOMAIN}.include /opt/nDeploy/domain-data/${DOMAIN}
-				echo "[`date`][pid $$] Run reload_nginx part" >> /opt/nDeploy/logs/hook.log
+				/opt/nDeploy/scripts/hook_domain_remove.py $DOMAIN
+				echo "[`date`][pid $$] Run hook_domain_remove.py part" >> /opt/nDeploy/logs/hook.log
+				
 				/opt/nDeploy/scripts/reload_nginx.sh
+				echo "[`date`][pid $$] Run reload_nginx part" >> /opt/nDeploy/logs/hook.log
 				exit 0;
 			fi
 		fi
@@ -48,7 +50,6 @@ case "$2" in
 		if [ ! -f /opt/nDeploy/domain-data/$FILENAME ] && [ $FILENAME != "main" ] && [ $3 != "IN_CREATE" ]; then
 			exit 0
 		fi
-		
 		;;
 	1)
 		[ $3 != "IN_MODIFY" ] && exit 0

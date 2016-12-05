@@ -1,0 +1,7 @@
+[Mon Dec  5 14:45:04 EET 2016][pid 28185] Called script /opt/nDeploy/scripts/event_trigger.sh /var/cpanel/userdata/innovanet/test.innovahosting.net_SSL 0 IN_CREATE
+[Mon Dec  5 14:45:04 EET 2016][pid 28185] Run generate_config reload_nginx part
+[Mon Dec  5 14:45:05 EET 2016][pid 28214] Called script /opt/nDeploy/scripts/event_trigger.sh /opt/nDeploy/domain-data/test.innovahosting.net_SSL 1 IN_MODIFY
+[Mon Dec  5 14:45:05 EET 2016][pid 28214] Run generate_config reload_nginx part
+[Mon Dec  5 14:45:05 EET 2016][pid 28241] Called script /opt/nDeploy/scripts/event_trigger.sh /var/cpanel/userdata/innovanet/test.innovahosting.net_SSL 0 IN_MODIFY
+[Mon Dec  5 14:45:05 EET 2016][pid 28241] Run generate_config reload_nginx part
+ 

@@ -1,0 +1,8 @@
+ 
+[Mon Dec  5 14:33:00 EET 2016][pid 26290] Called script /opt/nDeploy/scripts/event_trigger.sh /var/cpanel/userdata/innovanet/test.innovahosting.net 0 IN_CREATE
+[Mon Dec  5 14:33:00 EET 2016][pid 26290] Run generate_config reload_nginx part
+[Mon Dec  5 14:33:00 EET 2016][pid 26312] Called script /opt/nDeploy/scripts/event_trigger.sh /opt/nDeploy/domain-data/test.innovahosting.net 1 IN_MODIFY
+[Mon Dec  5 14:33:00 EET 2016][pid 26312] Run generate_config reload_nginx part
+[Mon Dec  5 14:33:00 EET 2016][pid 26343] Called script /opt/nDeploy/scripts/event_trigger.sh /var/cpanel/userdata/innovanet/test.innovahosting.net 0 IN_MODIFY
+[Mon Dec  5 14:33:00 EET 2016][pid 26343] Run generate_config reload_nginx part
+[Mon Dec  5 14:33:01 EET 2016][pid 26394] Called script /opt/nDeploy/scripts/event_trigger.sh /var/cpanel/userdata/innovanet/main 0 IN_MODIFY
