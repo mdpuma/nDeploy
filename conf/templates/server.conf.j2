@@ -7,18 +7,12 @@ server {
 	access_log /usr/local/apache/domlogs/{{ DOMAINNAME }}-bytes_log bytes_log;
 	disable_symlinks if_not_owner from={{ DOCUMENTROOT }};
 	
-	{% if REDIRECTTOSSL %}
-	location / {
-		return 301 https://$http_host$request_uri;
-	}
-	{% else %}
-	include /etc/nginx/sites-enabled/{{ DOMAINNAME }}.include;
-	{% endif %}
+	{% if REDIRECTTOSSL == 1 %}return 301 https://$host$request_uri;{% else %}include /etc/nginx/sites-enabled/{{ DOMAINNAME }}.include;{% endif %}
 }
 
-{% if SSL %}
+{% if SSL == 'enabled' %}
 server {
-	listen {{ CPANELIP }}:443 {% if HTTP2 %}http2{% else %}ssl{% endif %};
+	listen {{ CPANELIP }}:443 {% if HTTP2 == 1 %}http2{% else %}ssl{% endif %};
 	#CPIPVSIX:443;
 	
 	server_name {{ DOMAINLIST }};

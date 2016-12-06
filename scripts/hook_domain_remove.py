@@ -35,5 +35,4 @@ if __name__ == "__main__":
     remove_file(nginx_dir+"/sites-enabled/"+domain+".conf")
     remove_file(nginx_dir+"/sites-enabled/"+domain+".include")
     remove_file(installation_path+"/domain-data/"+domain)
-    if "_SSL" in domain:
-        remove_file(nginx_dir+"/ssl/"+domain+".crt")
+    remove_file(nginx_dir+"/ssl/"+domain+".crt")

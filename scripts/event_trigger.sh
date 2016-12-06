@@ -11,7 +11,7 @@
 # 
 
 # ignore files with .cache, .lock
-echo $1 | grep -E "\.main\.|\.lock|\.db|\.cache|cache\.?" && exit 0
+echo $1 | grep -E "\.main\.|\.lock|\.db|\.cache|cache\.?|sed[a-zA-Z0-9]+" && exit 0
 
 # ignore event when directory is removed
 echo $3 |grep -E "IN_DELETE\|IN_ISDIR" && exit 0

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-
+import codecs
 import yaml
 import argparse
 import subprocess
@@ -12,6 +12,7 @@ import pwd
 import grp
 import shutil
 import jinja2
+import json
 from lxml import etree
 
 
@@ -126,8 +127,7 @@ def php_backend_add(user_name, domain_home, phpversion, php_path):
     if not os.path.isfile(phppool_file):
         templateLoader = jinja2.FileSystemLoader(installation_path + "/conf/templates")
         templateEnv = jinja2.Environment(loader=templateLoader)
-        TEMPLATE_FILE = "php-fpm.pool.j2"
-        template = templateEnv.get_template(TEMPLATE_FILE)
+        template = templateEnv.get_template('php-fpm.pool.j2')
         templateVars = {"CPANELUSER": user_name,
                         "HOMEDIR": domain_home
                        }
@@ -138,10 +138,14 @@ def php_backend_add(user_name, domain_home, phpversion, php_path):
         os.remove(phppool_link)
     os.symlink(phppool_file, phppool_link)
     
+    php_backend_reload(phpversion)
+
+
+def php_backend_reload(phpversion):
     if not os.path.isfile(installation_path+'/lock/skip_php-fpm_reload'):
         control_script = installation_path+"/scripts/init_backends.pl"
-        subprocess.Popen([control_script, '--action=reload', '--php='+phpversion])
-    return
+        subprocess.Popen([control_script, '--action=reload', '--php='+phpversion])    
+
 
 def nginx_confgen(is_suspended, user_name, domain_name):
     """Function that generates nginx config given a domain name"""
@@ -169,15 +173,18 @@ def nginx_confgen(is_suspended, user_name, domain_name):
     domain_list = domain_sname + " " + domain_aname
     if 'ipv6' in list(yaml_parsed_cpaneldomain.keys()):
         if yaml_parsed_cpaneldomain.get('ipv6'):
-            for ipv6_addr in list(yaml_parsed_cpaneldomain.get('ipv6').keys()):
-                cpanel_ipv6 = "listen [" + ipv6_addr + "]"
+            ipv6_addr_list = yaml_parsed_cpaneldomain.get('ipv6').keys()
+            ipv6_addr = str(ipv6_addr_list[0])
+            hasipv6 = True
         else:
-            cpanel_ipv6 = "#CPIPVSIX"
+            hasipv6 = False
+            ipv6_addr = None
     else:
-        cpanel_ipv6 = "#CPIPVSIX"
-
+        hasipv6 = False
+        ipv6_addr = None
+        
     if os.path.isfile("/var/cpanel/userdata/" + user_name + "/" + domain_name + "_SSL"):
-        hasssl = True
+        hasssl = 'enabled'
         cpdomainyaml_ssl = "/var/cpanel/userdata/" + user_name + "/" + domain_name + "_SSL"
         cpaneldomain_ssl_data_stream = open(cpdomainyaml_ssl, 'r')
         yaml_parsed_cpaneldomain_ssl = yaml.safe_load(cpaneldomain_ssl_data_stream)
@@ -192,23 +199,26 @@ def nginx_confgen(is_suspended, user_name, domain_name):
                     with codecs.open(fname, 'r', 'utf-8') as infile:
                         outfile.write(infile.read()+"\n")
     else:
-        hasssl = False
+        hasssl = 'disabled'
         redirecttossl = False
-        
+        sslcertificatefile = None
+        sslcertificatekeyfile = None
+        sslcacertificatefile = None
+        sslcombinedcert = None
     
     # Get all data from nDeploy domain-data file
     if is_suspended:
-        if os.path.isfile(installation_path + "/conf/domain_data.suspended_local.yaml"):
-            domain_data_file = installation_path + "/conf/domain_data.suspended_local.yaml"
+        if os.path.isfile(installation_path + "/conf/templates/domain_data.suspended_local.yaml"):
+            domain_data_file = installation_path + "/conf/templates/domain_data.suspended_local.yaml"
         else:
-            domain_data_file = installation_path + "/conf/domain_data.suspended.yaml"
+            domain_data_file = installation_path + "/conf/templates/domain_data.suspended.yaml"
     else:
-        domain_data_file = installation_path + "/domain-data/" + domain_aname
+        domain_data_file = installation_path + "/domain-data/" + domain_sname
     if not os.path.isfile(domain_data_file):
-        if os.path.isfile(installation_path+"/conf/domain_data_default_local.yaml"):
-            TEMPLATE_FILE = installation_path+"/conf/domain_data_default_local.yaml"
+        if os.path.isfile(installation_path+"/conf/templates/domain_data_default_local.yaml"):
+            TEMPLATE_FILE = installation_path+"/conf/templates/domain_data_default_local.yaml"
         else:
-            TEMPLATE_FILE = installation_path+"/conf/domain_data_default.yaml"
+            TEMPLATE_FILE = installation_path+"/conf/templates/domain_data_default.yaml"
         shutil.copyfile(TEMPLATE_FILE, domain_data_file)
         cpuser_uid = pwd.getpwnam(cpaneluser).pw_uid
         cpuser_gid = grp.getgrnam(cpaneluser).gr_gid
@@ -222,71 +232,71 @@ def nginx_confgen(is_suspended, user_name, domain_name):
     backend_path = yaml_parsed_domain_data.get('backend_path', None)
     backend_version = yaml_parsed_domain_data.get('backend_version', None)
     redirecttossl = yaml_parsed_domain_data.get('redirecttossl', None)
+    http2 = yaml_parsed_domain_data.get('http2', None)
     testcookie = yaml_parsed_domain_data.get('testcookie', None)
     fastcgi_socket = False
     
     # Since we have all data needed, lets render the conf to a file
+    if os.path.isfile(installation_path+'/conf/templates/server.conf.local.j2'):
+        TEMPLATE_FILE = 'server.conf.local.j2'
+    else:
+        TEMPLATE_FILE = 'server.conf.j2'
+    server_template = templateEnv.get_template(TEMPLATE_FILE)
+    templateVars = {"SSL": hasssl,
+                    "CPANELIP": cpanel_ipv4,
+                    "CPIPVSIX": ipv6_addr,
+                    "IPVSIX": hasipv6,
+                    "HTTP2": http2,
+                    "CPANELSSLCRT": sslcombinedcert,
+                    "CPANELSSLKEY": sslcertificatekeyfile,
+                    "CPANELCACERT": sslcacertificatefile,
+                    "DOMAINNAME": domain_sname,
+                    "DOMAINLIST": domain_list,
+                    "DOCUMENTROOT": document_root,
+                    "REDIRECTTOSSL": redirecttossl,
+                    }
+    generated_config = server_template.render(templateVars)
+    with codecs.open(nginx_dir + "/sites-enabled/" + domain_sname + ".conf", "w", 'utf-8') as confout:
+        confout.write(generated_config)
+        
+    # Generate the rest of the config(domain.include) based on the application template
     if os.path.isfile(installation_path + "/conf/custom/" + domain_sname):
         shutil.copyfile(installation_path + "/conf/custom/" + domain_sname, nginx_dir + "/sites-enabled/" + domain_sname + ".include")
     else:
-        if os.path.isfile(installation_path+'/conf/templates/server_local.j2'):
-            TEMPLATE_FILE = "server_local.j2"
-        else:
-            TEMPLATE_FILE = "server.j2"
-        server_template = templateEnv.get_template(TEMPLATE_FILE)
-        templateVars = {"SSL": hasssl,
-                        "CPANELIP": cpanel_ipv4,
-                        "CPIPVSIX": cpanel_ipv6,
-                        "IPVSIX": hasipv6,
-                        "HTTP2": http2,
-                        "CPANELSSLCRT": sslcombinedcert,
-                        "CPANELSSLKEY": sslcertificatekeyfile,
-                        "CPANELCACERT": sslcacertificatefile,
-                        "DOMAINNAME": domain_sname,
-                        "DOMAINLIST": domain_list,
-                        "DOCUMENTROOT": document_root,
-                        "REDIRECTTOSSL": redirecttossl,
-                        }
-        generated_config = server_template.render(templateVars)
-        with codecs.open(nginx_dir + "/sites-enabled/" + domain_sname + ".conf", "w", 'utf-8') as confout:
-            confout.write(generated_config)
-    
-    
-    # Generate the rest of the config(domain.include) based on the application template
-    app_template = templateEnv.get_template(apptemplate_code)
-    # We configure the backends first if necessary
-    if backend_category == 'PROXY':
-        if backend_version == 'railo_tomcat':
-            railo_vhost_add_tomcat(domain_server_name, document_root, *serveralias_list)
-        elif backend_version == 'railo_resin':
-            railo_vhost_add_resin(user_name, domain_server_name, document_root, *serveralias_list)
-    elif backend_category == 'PHP':
-        fastcgi_socket = backend_path + "/var/run/" + user_name + ".sock"
-        if not os.path.isfile(fastcgi_socket):
-            if os.path.isfile(installation_path+"/conf/secure-php-enabled"):
-                php_secure_backend_add(user_name, domain_home, backend_version)
-            else:
-                php_backend_add(user_name, domain_home, backend_version, backend_path)
-    elif backend_category == 'HHVM_NOBODY':
-        fastcgi_socket = backend_path
-    elif backend_category == 'HHVM':
-        fastcgi_socket = domain_home+"/hhvm.sock"
-        if not os.path.isfile(fastcgi_socket):
-            hhvm_backend_add(user_name, domain_home)
-    # We generate the app config from template next
-    apptemplateVars = {"CPANELIP": cpanel_ipv4,
-                       "DOMAINNAME": domain_sname,
-                       "SOCKETFILE": fastcgi_socket,
-                       "DOCUMENTROOT": document_root,
-                       "UPSTREAM_PORT": backend_path,
-                       "TESTCOOKIE": testcookie,
-                       "PATHTOPYTHON": backend_path,
-                       "PATHTORUBY": backend_path,
-                       "PATHTONODEJS": backend_path,
-                       }
-    generated_app_config = app_template.render(apptemplateVars)
-    with codecs.open(nginx_dir + "/sites-enabled/" + domain_sname + ".include", "w", 'utf-8') as confout:
-        confout.write(generated_app_config)
+	app_template = templateEnv.get_template(apptemplate_code)
+	# We configure the backends first if necessary
+	if backend_category == 'PROXY':
+	    if backend_version == 'railo_tomcat':
+		railo_vhost_add_tomcat(domain_server_name, document_root, *serveralias_list)
+	    elif backend_version == 'railo_resin':
+		railo_vhost_add_resin(user_name, domain_server_name, document_root, *serveralias_list)
+	elif backend_category == 'PHP':
+	    fastcgi_socket = backend_path + "/var/run/" + user_name + ".sock"
+	    if not os.path.isfile(fastcgi_socket):
+		if os.path.isfile(installation_path+"/conf/secure-php-enabled"):
+		    php_secure_backend_add(user_name, domain_home, backend_version)
+		else:
+		    php_backend_add(user_name, domain_home, backend_version, backend_path)
+	elif backend_category == 'HHVM_NOBODY':
+	    fastcgi_socket = backend_path
+	elif backend_category == 'HHVM':
+	    fastcgi_socket = domain_home+"/hhvm.sock"
+	    if not os.path.isfile(fastcgi_socket):
+		hhvm_backend_add(user_name, domain_home)
+	# We generate the app config from template next
+	apptemplateVars = {"CPANELIP": cpanel_ipv4,
+			  "DOMAINNAME": domain_sname,
+			  "SOCKETFILE": fastcgi_socket,
+			  "DOCUMENTROOT": document_root,
+			  "UPSTREAM_PORT": backend_path,
+			  "TESTCOOKIE": testcookie,
+			  "PATHTOPYTHON": backend_path,
+			  "PATHTORUBY": backend_path,
+			  "PATHTONODEJS": backend_path,
+			  }
+	generated_app_config = app_template.render(apptemplateVars)
+	with codecs.open(nginx_dir + "/sites-enabled/" + domain_sname + ".include", "w", 'utf-8') as confout:
+	    confout.write(generated_app_config)
         
 # End Function defs
 

@@ -1,0 +1,5 @@
+#!/bin/bash
+
+cd /opt/nDeploy/domain-data
+sed -i 's/profile/apptemplate_code/' *
+sed -E -i "/apptemplate_code/s/: '(.*)'/: \'\1.j2\'/" *

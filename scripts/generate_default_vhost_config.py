@@ -16,7 +16,9 @@ __email__ = "anoopalias01@gmail.com"
 installation_path = "/opt/nDeploy"  # Absolute Installation Path
 
 # Get ips list
-iplist_json = json.loads(subprocess.check_output(['/usr/local/cpanel/bin/whmapi1', 'listips', '--output=json']))
+p = subprocess.Popen(['/usr/local/cpanel/bin/whmapi1', 'listips', '--output=json'], stdout=subprocess.PIPE)
+out, err = p.communicate()
+iplist_json = json.loads(out)
 data_dict = iplist_json.get('data')
 ip_list = data_dict.get('ip')
 cpanel_ip_list = []
@@ -27,9 +29,11 @@ for myip in ip_list:
     if mainaddr_status == 1:
         mainip = theip
 
-# Get server hostname     
-iplist_json = json.loads(subprocess.check_output(['/usr/local/cpanel/bin/whmapi1', 'gethostname', '--output=json']))
-data_dict = iplist_json.get('data')
+# Get server hostname
+p = subprocess.Popen(['/usr/local/cpanel/bin/whmapi1', 'gethostname', '--output=json'], stdout=subprocess.PIPE)
+out, err = p.communicate()
+hostname_json = json.loads(out)
+data_dict = hostname_json.get('data')
 hostname = data_dict.get('hostname')
 
 if os.path.isfile('/var/cpanel/ssl/cpanel/mycpanel.pem'):
