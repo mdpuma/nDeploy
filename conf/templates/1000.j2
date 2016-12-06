@@ -1,0 +1,29 @@
+#proxy pass to a backend webserver listening on port 8000
+
+{% if TESTCOOKIE == True %}
+include /etc/nginx/testcookie/testcookie_aes_locations.conf;
+{% endif %}
+
+root {{ DOCUMENTROOT }};
+
+location / {
+	{% if TESTCOOKIE %}testcookie on;{% endif %}
+	# limit_req zone=rate_10 burst=10;
+	proxy_pass http://{{ CPANELIP }}:{{ UPSTREAM_PORT }};
+	access_log off;
+	
+	location ~* ^.+\.(jpg|jpeg|gif|png|ico|css|js|zip|tgz|gz|rar|bz2|doc|xls|exe|pdf|ppt|txt|tar|bmp|rtf|swf)$ {
+		expires 31d;
+		
+		# access_log /usr/local/apache/domlogs/{{ DOMAINNAME }} main;
+		# add_header X-Server "by nginx";
+		error_page 404 = @fallback;
+		access_log off;
+	}
+}
+location @fallback {
+	{% if TESTCOOKIE %}testcookie on;{% endif %}
+	# limit_req zone=rate_10 burst=10;
+	proxy_pass http://{{ CPANELIP }}:{{ UPSTREAM_PORT }};
+	access_log off;
+}

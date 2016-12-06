@@ -1,0 +1,36 @@
+server {
+	listen {{ CPANELIP }}:80;
+	# CPIPVSIX:80;
+	
+	server_name {{ DOMAINLIST }};
+	access_log /usr/local/apache/domlogs/{{ DOMAINNAME }} main;
+	access_log /usr/local/apache/domlogs/{{ DOMAINNAME }}-bytes_log bytes_log;
+	disable_symlinks if_not_owner from={{ DOCUMENTROOT }};
+	
+	{% if REDIRECTTOSSL %}
+	location / {
+		return 301 https://$http_host$request_uri;
+	}
+	{% else %}
+	include /etc/nginx/sites-enabled/{{ DOMAINNAME }}.include;
+	{% endif %}
+}
+
+{% if SSL %}
+server {
+	listen {{ CPANELIP }}:443 {% if HTTP2 %}http2{% else %}ssl{% endif %};
+	#CPIPVSIX:443;
+	
+	server_name {{ DOMAINLIST }};
+	access_log /usr/local/apache/domlogs/{{ DOMAINNAME }} main;
+	access_log /usr/local/apache/domlogs/{{ DOMAINNAME }}-bytes_log bytes_log;
+	access_log /usr/local/apache/domlogs/{{ DOMAINNAME }}-ssl_log main;
+	disable_symlinks if_not_owner from={{ DOCUMENTROOT }};
+	
+	ssl on;
+	ssl_certificate {{ CPANELSSLCRT }};
+	ssl_certificate_key {{ CPANELSSLKEY }};
+	
+	include /etc/nginx/sites-enabled/{{ DOMAINNAME }}.include;
+}
+{% endif %}
