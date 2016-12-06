@@ -11,6 +11,7 @@ import sys
 import pwd
 import grp
 import shutil
+import jinja2
 from lxml import etree
 
 
@@ -22,28 +23,9 @@ __email__ = "anoop.alias@piserve.com"
 
 installation_path = "/opt/nDeploy"  # Absolute Installation Path
 nginx_bin = "/usr/sbin/nginx"
+nginx_dir = "/etc/nginx/"
 
 # Function defs
-
-
-def cpanel_nginx_awstats_fix(awstats_custom_conf, cpaneluser):
-    """cPanel nginx awstats fix .Thanks to https://github.com/lucasRolff/cpanel-nginx-awstats"""
-    file_content = """\
-    LogFormat="%host %other %logname %time1 %methodurl %code %bytesd %refererquot %uaquot %extra1"
-    ExtraSectionName1="Time to serve requests (seconds)"
-    ExtraSectionCodeFilter1=""
-    ExtraSectionFirstColumnTitle1="Number of seconds to serve the request"
-    ExtraSectionFirstColumnValues1="extra1,(.*)"
-    ExtraSectionStatTypes1="H"
-    ExtraTrackedRowsLimit=100000
-    """
-    with open(awstats_custom_conf, 'w') as f:
-        f.write(file_content)
-    f.close()
-    subprocess.call("chown "+cpaneluser+":"+cpaneluser+" "+awstats_custom_conf, shell=True)
-    return
-
-
 
 def railo_vhost_add_tomcat(domain_name, document_root, *domain_aname_list):
     """Add a vhost to tomcat and restart railo-tomcat app server"""
@@ -137,236 +119,42 @@ def nginx_server_reload():
     return
 
 
-def php_profile_set(user_name, phpversion, php_path, restart=True):
+def php_backend_add(user_name, domain_home, phpversion, php_path):
     """Function to setup php-fpm pool for user and restart the master php-fpm"""
-    phppool_file = "/opt/nDeploy/conf/php-fpm.d/" + user_name + ".conf"
+    phppool_file = installation_path + "/conf/php-fpm.d/" + user_name + ".conf"
     phppool_link = php_path + "/etc/php-fpm.d/" + user_name + ".conf"
-    php_fpm_config = installation_path+"/conf/php-fpm.conf"
-    php_fpm_bin = php_path + "/sbin/php-fpm"
-    if os.path.isfile(phppool_file) == False:
-        sed_string='sed "s/CPANELUSER/' + user_name + '/g" ' + installation_path + '/conf/php-fpm.pool.tmpl > ' + phppool_file
-        subprocess.call(sed_string, shell=True)
+    if not os.path.isfile(phppool_file):
+        templateLoader = jinja2.FileSystemLoader(installation_path + "/conf/templates")
+        templateEnv = jinja2.Environment(loader=templateLoader)
+        TEMPLATE_FILE = "php-fpm.pool.j2"
+        template = templateEnv.get_template(TEMPLATE_FILE)
+        templateVars = {"CPANELUSER": user_name,
+                        "HOMEDIR": domain_home
+                       }
+        generated_config = template.render(templateVars)
+        with codecs.open(phppool_file, 'w', 'utf-8') as confout:
+            confout.write(generated_config)
     if os.path.islink(phppool_link) == True:
         os.remove(phppool_link)
     os.symlink(phppool_file, phppool_link)
-    if restart is True:
-        if os.path.isfile(php_path + "/var/run/php-fpm.pid"):
-            with open(php_path + "/var/run/php-fpm.pid") as f:
-                mypid = f.read()
-            f.close()
-            os.kill(int(mypid), signal.SIGQUIT)
-            print "Waiting to stop php-fpm ("+php_fpm_bin+") ",
-            while subprocess.call("kill -0 "+mypid, shell=True) == '0':
-                time.sleep(1)
-                print ".",
-            print "done"
-        subprocess.call(php_fpm_bin+" --fpm-config "+php_fpm_config, shell=True)
+    
+    if not os.path.isfile(installation_path+'/lock/skip_php-fpm_reload'):
+        control_script = installation_path+"/scripts/init_backends.pl"
+        subprocess.Popen([control_script, '--action=reload', '--php='+phpversion])
     return
 
-
-def nginx_confgen_profilegen(user_name, domain_name, cpanelip, document_root, sslenabled, domain_home, *domain_aname_list):
-    """Function generating config include based on profile"""
-    with open("/var/cpanel/users/" + user_name) as users_file:
-        if "SUSPENDED=1" in users_file.read():
-            profileyaml = installation_path + "/conf/domain_data.suspended"
-            if sslenabled == 1:
-                include_file = "/etc/nginx/sites-enabled/" + domain_name + "_SSL.include"
-                custom_config_file = domain_home + '/' + domain_name + '_SSL_nginx.include.custom.conf'
-            else:
-                include_file = "/etc/nginx/sites-enabled/" + domain_name + ".include"
-                custom_config_file = domain_home + '/' + domain_name + '_nginx.include.custom.conf'
-        else:
-            if sslenabled == 1:
-                include_file = "/etc/nginx/sites-enabled/" + domain_name + "_SSL.include"
-                profileyaml = installation_path + "/domain-data/" + domain_name + "_SSL"
-                custom_config_file = domain_home + '/' + domain_name + '_SSL_nginx.include.custom.conf'
-            else:
-                include_file = "/etc/nginx/sites-enabled/" + domain_name + ".include"
-                profileyaml = installation_path + "/domain-data/" + domain_name
-                custom_config_file = domain_home + '/' + domain_name + '_nginx.include.custom.conf'
-    if os.path.isfile(profileyaml):
-        profileyaml_data_stream = open(profileyaml, 'r')
-        yaml_parsed_profileyaml = yaml.safe_load(profileyaml_data_stream)
-        profileyaml_data_stream.close()
-        profile_custom_status = yaml_parsed_profileyaml.get('customconf')
-        config_test_status = yaml_parsed_profileyaml.get('testconf')
-        if profile_custom_status == "0" and config_test_status == "0":
-            profile_category = yaml_parsed_profileyaml.get('backend_category')
-            profile_code = str(yaml_parsed_profileyaml.get('profile'))
-            if profile_category == "PHP":
-                phpversion = yaml_parsed_profileyaml.get('backend_version')
-                php_path = yaml_parsed_profileyaml.get('backend_path')
-                testcookie_status = str(yaml_parsed_profileyaml.get('testcookie'))
-                if testcookie_status == "0":
-                    testcookie_include = "#TESTCOOKIE"
-                else:
-                    testcookie_include = 'testcookie on;'
-                path_to_socket = php_path + "/var/run/" + user_name + ".sock"
-                php_profile_set(user_name, phpversion, php_path)
-                profile_template_file = open(installation_path + "/conf/" + profile_code + ".tmpl", 'r')
-                profile_config_out = open(include_file, 'w')
-                for line in profile_template_file:
-                    line = line.replace('CPANELIP', cpanelip)
-                    line = line.replace('DOMAINNAME', domain_name)
-                    line = line.replace('DOCUMENTROOT', document_root)
-                    line = line.replace('SOCKETFILE', path_to_socket)
-                    line = line.replace('#TESTCOOKIE', testcookie_include)
-                    profile_config_out.write(line)
-                profile_template_file.close()
-                profile_config_out.close()
-            elif profile_category == "HHVM_NOBODY":
-                hhvm_nobody_socket = yaml_parsed_profileyaml.get('backend_path')
-                testcookie_status = str(yaml_parsed_profileyaml.get('testcookie'))
-                if testcookie_status == "0":
-                    testcookie_include = "#TESTCOOKIE"
-                else:
-                    testcookie_include = 'testcookie on;'
-                profile_template_file = open(installation_path + "/conf/" + profile_code + ".tmpl", 'r')
-                profile_config_out = open(include_file, 'w')
-                for line in profile_template_file:
-                    line = line.replace('CPANELIP', cpanelip)
-                    line = line.replace('DOMAINNAME', domain_name)
-                    line = line.replace('DOCUMENTROOT', document_root)
-                    line = line.replace('SOCKETFILE', hhvm_nobody_socket)
-                    line = line.replace('#TESTCOOKIE', testcookie_include)
-                    profile_config_out.write(line)
-                profile_template_file.close()
-                profile_config_out.close()
-            elif profile_category == "RUBY":
-                ruby_path = yaml_parsed_profileyaml.get('backend_path')
-                testcookie_status = str(yaml_parsed_profileyaml.get('testcookie'))
-                if testcookie_status == "0":
-                    testcookie_include = "#TESTCOOKIE"
-                else:
-                    testcookie_include = 'testcookie on;'
-                profile_template_file = open(installation_path + "/conf/" + profile_code + ".tmpl", 'r')
-                profile_config_out = open(include_file, 'w')
-                for line in profile_template_file:
-                    line = line.replace('CPANELIP', cpanelip)
-                    line = line.replace('DOMAINNAME', domain_name)
-                    line = line.replace('DOCUMENTROOT', document_root)
-                    line = line.replace('#TESTCOOKIE', testcookie_include)
-                    line = line.replace('PATHTORUBY', ruby_path)
-                    profile_config_out.write(line)
-                profile_template_file.close()
-                profile_config_out.close()
-            elif profile_category == "PYTHON":
-                python_path = yaml_parsed_profileyaml.get('backend_path')
-                testcookie_status = str(yaml_parsed_profileyaml.get('testcookie'))
-                if testcookie_status == "0":
-                    testcookie_include = "#TESTCOOKIE"
-                else:
-                    testcookie_include = 'testcookie on;'
-                profile_template_file = open(installation_path + "/conf/" + profile_code + ".tmpl", 'r')
-                profile_config_out = open(include_file, 'w')
-                for line in profile_template_file:
-                    line = line.replace('CPANELIP', cpanelip)
-                    line = line.replace('DOMAINNAME', domain_name)
-                    line = line.replace('DOCUMENTROOT', document_root)
-                    line = line.replace('#TESTCOOKIE', testcookie_include)
-                    line = line.replace('PATHTOPYTHON', python_path)
-                    profile_config_out.write(line)
-                profile_template_file.close()
-                profile_config_out.close()
-            elif profile_category == "NODEJS":
-                nodejs_path = yaml_parsed_profileyaml.get('backend_path')
-                testcookie_status = str(yaml_parsed_profileyaml.get('testcookie'))
-                if testcookie_status == "0":
-                    testcookie_include = "#TESTCOOKIE"
-                else:
-                    testcookie_include = 'testcookie on;'
-                profile_template_file = open(installation_path + "/conf/" + profile_code + ".tmpl", 'r')
-                profile_config_out = open(include_file, 'w')
-                for line in profile_template_file:
-                    line = line.replace('CPANELIP', cpanelip)
-                    line = line.replace('DOMAINNAME', domain_name)
-                    line = line.replace('DOCUMENTROOT', document_root)
-                    line = line.replace('#TESTCOOKIE', testcookie_include)
-                    line = line.replace('PATHTONODEJS', nodejs_path)
-                    profile_config_out.write(line)
-                profile_template_file.close()
-                profile_config_out.close()
-            else:
-                proxytype = yaml_parsed_profileyaml.get('backend_version')
-                proxy_port = str(yaml_parsed_profileyaml.get('backend_path'))
-                testcookie_status = str(yaml_parsed_profileyaml.get('testcookie'))
-                if testcookie_status == "0":
-                    testcookie_include = "#TESTCOOKIE"
-                else:
-                    testcookie_include = 'testcookie on;'
-                proxy_path = cpanelip + ":" + proxy_port
-                profile_template_file = open(installation_path + "/conf/" + profile_code + ".tmpl", 'r')
-                profile_config_out = open(include_file, 'w')
-                for line in profile_template_file:
-                    line = line.replace('CPANELIP', cpanelip)
-                    line = line.replace('DOMAINNAME', domain_name)
-                    line = line.replace('PROXYLOCATION', proxy_path)
-                    line = line.replace('DOCUMENTROOT', document_root)
-                    line = line.replace('#TESTCOOKIE', testcookie_include)
-                    profile_config_out.write(line)
-                profile_template_file.close()
-                profile_config_out.close()
-                if proxytype == "railo_tomcat":
-                    railo_vhost_add_tomcat(domain_name, document_root, *domain_aname_list)
-                elif proxytype == "railo_resin":
-                    railo_vhost_add_resin(user_name, domain_name, document_root, *domain_aname_list)
-        elif config_test_status == "1":
-	    if os.path.isfile(custom_config_file) and 'server_name' not in open(custom_config_file).read():
-                test_config_file = open(installation_path + "/conf/nginx.conf.test", 'r')
-                test_config_out = open(installation_path + "/conf/nginx.conf." + domain_name + ".test", 'w')
-                config = installation_path + "/conf/nginx.conf." + domain_name + ".test"
-                for line in test_config_file:
-                    line = line.replace('NGINX_INCLUDE', custom_config_file)
-                    test_config_out.write(line)
-                test_config_file.close()
-                test_config_file.close()
-                test_config_out.close()
-                nginx_conf_test = subprocess.call("/usr/sbin/nginx -c " + config + " -t", shell=True)
-                if nginx_conf_test == 0:
-                    profile_config_out = open(include_file, 'w')
-                    profile_config_in = open(custom_config_file, 'r')
-                    for line in profile_config_in:
-                        profile_config_out.write(line)
-                    profile_config_out.close()
-                    profile_config_in.close()
-                    update_custom_profile(profileyaml, 1)
-                    update_config_test_status(profileyaml, 0)
-                else:
-                    if profile_custom_status == '0':
-                        update_custom_profile(profileyaml, 0)
-                        update_config_test_status(profileyaml, 0)
-                    else:
-                        update_custom_profile(profileyaml, 1)
-                        update_config_test_status(profileyaml, 0)
-            else:
-                update_custom_profile(profileyaml, 0)
-                update_config_test_status(profileyaml, 0)
-        else:
-            return
-    else:
-        template_file = open(installation_path + "/conf/domain_data.yaml.tmpl", 'r')
-        config_out = open(profileyaml, 'w')
-        for line in template_file:
-            line = line.replace('CPANELUSER', user_name)
-            config_out.write(line)
-        template_file.close()
-        config_out.close()
-        subprocess.call("chown " + user_name + ":" + user_name + " " + profileyaml, shell=True)
-        nginx_confgen_profilegen(user_name, domain_name, cpanelip, document_root, sslenabled, domain_home, *domain_aname_list)
-
-
-def nginx_confgen(user_name, domain_name):
+def nginx_confgen(is_suspended, user_name, domain_name):
     """Function that generates nginx config given a domain name"""
+    # Initiate Jinja2 templateEnv
+    templateLoader = jinja2.FileSystemLoader(installation_path + "/conf/templates")
+    templateEnv = jinja2.Environment(loader=templateLoader)
+    
+    # Get all Data from cPanel userdata files
     cpdomainyaml = "/var/cpanel/userdata/" + user_name + "/" + domain_name
     cpaneldomain_data_stream = open(cpdomainyaml, 'r')
     yaml_parsed_cpaneldomain = yaml.safe_load(cpaneldomain_data_stream)
     cpanel_ipv4 = yaml_parsed_cpaneldomain.get('ip')
     domain_home = yaml_parsed_cpaneldomain.get('homedir')
-    awstats_dir=domain_home+"/tmp/awstats"
-    awstats_custom_conf=domain_home+"/tmp/awstats/awstats.conf.include"
-    if os.path.exists(awstats_dir):
-        if not os.path.isfile(awstats_custom_conf):
-            cpanel_nginx_awstats_fix(awstats_custom_conf, user_name)
     document_root = yaml_parsed_cpaneldomain.get('documentroot')
     domain_sname = yaml_parsed_cpaneldomain.get('servername')
     if domain_sname.startswith("*"):
@@ -389,59 +177,117 @@ def nginx_confgen(user_name, domain_name):
         cpanel_ipv6 = "#CPIPVSIX"
 
     if os.path.isfile("/var/cpanel/userdata/" + user_name + "/" + domain_name + "_SSL"):
+        hasssl = True
         cpdomainyaml_ssl = "/var/cpanel/userdata/" + user_name + "/" + domain_name + "_SSL"
         cpaneldomain_ssl_data_stream = open(cpdomainyaml_ssl, 'r')
         yaml_parsed_cpaneldomain_ssl = yaml.safe_load(cpaneldomain_ssl_data_stream)
         sslcertificatefile = yaml_parsed_cpaneldomain_ssl.get('sslcertificatefile')
         sslcertificatekeyfile = yaml_parsed_cpaneldomain_ssl.get('sslcertificatekeyfile')
         sslcacertificatefile = yaml_parsed_cpaneldomain_ssl.get('sslcacertificatefile')
-        sslcombinedcert = "/etc/nginx/ssl/" + domain_name + ".crt"
-        subprocess.call("cat /dev/null > " + sslcombinedcert, shell=True)
         if sslcacertificatefile:
-            subprocess.call("cat " + sslcertificatefile + " >> " + sslcombinedcert, shell=True)
-            subprocess.call('echo "" >> ' + sslcombinedcert, shell=True)
-            subprocess.call("cat " + sslcacertificatefile + " >> " + sslcombinedcert, shell=True)
-        else:
-            subprocess.call("cat " + sslcertificatefile + " >> " + sslcombinedcert, shell=True)
-            
-        if os.path.isfile(installation_path+"/conf/custom/"+domain_sname+"_SSL"):
-            shutil.copyfile(installation_path+"/conf/custom/"+domain_sname+"_SSL", "/etc/nginx/sites-enabled/" + domain_sname + "_SSL.include")
-        else:
-            nginx_confgen_profilegen(user_name, domain_sname, cpanel_ipv4, document_root, 1, domain_home, *domain_aname_list)
-        
-        template_file = open(installation_path + "/conf/server_ssl.tmpl", 'r')
-        config_out = open("/etc/nginx/sites-enabled/" + domain_sname + "_SSL.conf", 'w')
-        for line in template_file:
-            line = line.replace('CPANELIP', cpanel_ipv4)
-            line = line.replace('DOMAINLIST', domain_list)
-            line = line.replace('DOMAINNAME', domain_sname)
-            line = line.replace('#CPIPVSIX', cpanel_ipv6)
-            line = line.replace('DOCUMENTROOT', document_root)
-            line = line.replace('CPANELSSLKEY', sslcertificatekeyfile)
-            line = line.replace('CPANELSSLCRT', sslcombinedcert)
-            config_out.write(line)
-        template_file.close()
-        config_out.close()
-
-    if os.path.isfile(installation_path+"/conf/custom/"+domain_sname):
-        shutil.copyfile(installation_path+"/conf/custom/"+domain_sname, "/etc/nginx/sites-enabled/" + domain_sname + ".include")
+            sslcombinedcert = "/etc/nginx/ssl/" + domain_name + ".crt"
+            filenames = [sslcertificatefile, sslcacertificatefile]
+            with codecs.open(sslcombinedcert, 'w', 'utf-8') as outfile:
+                for fname in filenames:
+                    with codecs.open(fname, 'r', 'utf-8') as infile:
+                        outfile.write(infile.read()+"\n")
     else:
-        nginx_confgen_profilegen(user_name, domain_sname, cpanel_ipv4, document_root, 0, domain_home, *domain_aname_list)
+        hasssl = False
+        redirecttossl = False
+        
     
-    template_file = open(installation_path + "/conf/server.tmpl", 'r')
-    config_out = open("/etc/nginx/sites-enabled/" + domain_sname + ".conf", 'w')
-    for line in template_file:
-        line = line.replace('CPANELIP', cpanel_ipv4)
-        line = line.replace('DOMAINLIST', domain_list)
-        line = line.replace('DOMAINNAME', domain_sname)
-        line = line.replace('#CPIPVSIX', cpanel_ipv6)
-        line = line.replace('DOCUMENTROOT', document_root)
-        config_out.write(line)
-    template_file.close()
-    config_out.close()
-    #nginx_server_reload()
-
-
+    # Get all data from nDeploy domain-data file
+    if is_suspended:
+        if os.path.isfile(installation_path + "/conf/domain_data.suspended_local.yaml"):
+            domain_data_file = installation_path + "/conf/domain_data.suspended_local.yaml"
+        else:
+            domain_data_file = installation_path + "/conf/domain_data.suspended.yaml"
+    else:
+        domain_data_file = installation_path + "/domain-data/" + domain_aname
+    if not os.path.isfile(domain_data_file):
+        if os.path.isfile(installation_path+"/conf/domain_data_default_local.yaml"):
+            TEMPLATE_FILE = installation_path+"/conf/domain_data_default_local.yaml"
+        else:
+            TEMPLATE_FILE = installation_path+"/conf/domain_data_default.yaml"
+        shutil.copyfile(TEMPLATE_FILE, domain_data_file)
+        cpuser_uid = pwd.getpwnam(cpaneluser).pw_uid
+        cpuser_gid = grp.getgrnam(cpaneluser).gr_gid
+        os.chown(domain_data_file, cpuser_uid, cpuser_gid)
+        os.chmod(domain_data_file, 0o660)
+    with open(domain_data_file, 'r') as domain_data_stream:
+        yaml_parsed_domain_data = yaml.safe_load(domain_data_stream)
+    # Following are the backend details that can be changed from the UI
+    backend_category = yaml_parsed_domain_data.get('backend_category', None)
+    apptemplate_code = yaml_parsed_domain_data.get('apptemplate_code', None)
+    backend_path = yaml_parsed_domain_data.get('backend_path', None)
+    backend_version = yaml_parsed_domain_data.get('backend_version', None)
+    redirecttossl = yaml_parsed_domain_data.get('redirecttossl', None)
+    testcookie = yaml_parsed_domain_data.get('testcookie', None)
+    fastcgi_socket = False
+    
+    # Since we have all data needed, lets render the conf to a file
+    if os.path.isfile(installation_path + "/conf/custom/" + domain_sname):
+        shutil.copyfile(installation_path + "/conf/custom/" + domain_sname, nginx_dir + "/sites-enabled/" + domain_sname + ".include")
+    else:
+        if os.path.isfile(installation_path+'/conf/templates/server_local.j2'):
+            TEMPLATE_FILE = "server_local.j2"
+        else:
+            TEMPLATE_FILE = "server.j2"
+        server_template = templateEnv.get_template(TEMPLATE_FILE)
+        templateVars = {"SSL": hasssl,
+                        "CPANELIP": cpanel_ipv4,
+                        "CPIPVSIX": cpanel_ipv6,
+                        "IPVSIX": hasipv6,
+                        "HTTP2": http2,
+                        "CPANELSSLCRT": sslcombinedcert,
+                        "CPANELSSLKEY": sslcertificatekeyfile,
+                        "CPANELCACERT": sslcacertificatefile,
+                        "DOMAINNAME": domain_sname,
+                        "DOMAINLIST": domain_list,
+                        "DOCUMENTROOT": document_root,
+                        "REDIRECTTOSSL": redirecttossl,
+                        }
+        generated_config = server_template.render(templateVars)
+        with codecs.open(nginx_dir + "/sites-enabled/" + domain_sname + ".conf", "w", 'utf-8') as confout:
+            confout.write(generated_config)
+    
+    
+    # Generate the rest of the config(domain.include) based on the application template
+    app_template = templateEnv.get_template(apptemplate_code)
+    # We configure the backends first if necessary
+    if backend_category == 'PROXY':
+        if backend_version == 'railo_tomcat':
+            railo_vhost_add_tomcat(domain_server_name, document_root, *serveralias_list)
+        elif backend_version == 'railo_resin':
+            railo_vhost_add_resin(user_name, domain_server_name, document_root, *serveralias_list)
+    elif backend_category == 'PHP':
+        fastcgi_socket = backend_path + "/var/run/" + user_name + ".sock"
+        if not os.path.isfile(fastcgi_socket):
+            if os.path.isfile(installation_path+"/conf/secure-php-enabled"):
+                php_secure_backend_add(user_name, domain_home, backend_version)
+            else:
+                php_backend_add(user_name, domain_home, backend_version, backend_path)
+    elif backend_category == 'HHVM_NOBODY':
+        fastcgi_socket = backend_path
+    elif backend_category == 'HHVM':
+        fastcgi_socket = domain_home+"/hhvm.sock"
+        if not os.path.isfile(fastcgi_socket):
+            hhvm_backend_add(user_name, domain_home)
+    # We generate the app config from template next
+    apptemplateVars = {"CPANELIP": cpanel_ipv4,
+                       "DOMAINNAME": domain_sname,
+                       "SOCKETFILE": fastcgi_socket,
+                       "DOCUMENTROOT": document_root,
+                       "UPSTREAM_PORT": backend_path,
+                       "TESTCOOKIE": testcookie,
+                       "PATHTOPYTHON": backend_path,
+                       "PATHTORUBY": backend_path,
+                       "PATHTONODEJS": backend_path,
+                       }
+    generated_app_config = app_template.render(apptemplateVars)
+    with codecs.open(nginx_dir + "/sites-enabled/" + domain_sname + ".include", "w", 'utf-8') as confout:
+        confout.write(generated_app_config)
+        
 # End Function defs
 
 if __name__ == "__main__":
@@ -457,12 +303,32 @@ if __name__ == "__main__":
     cpaneluser_data_stream = open(cpuserdatayaml, 'r')
     yaml_parsed_cpaneluser = yaml.safe_load(cpaneluser_data_stream)
     
+    # Check & make mutex
+    mutex_dir = installation_path+"/lock/"+cpaneluser+".mutex";
+    while os.path.isdir(mutex_dir):
+        time.sleep(1) # sleep one second and try again
+    os.mkdir(mutex_dir)
+    
     main_domain = yaml_parsed_cpaneluser.get('main_domain')
     #parked_domains = yaml_parsed_cpaneluser.get('parked_domains')   #This data is irrelevant as parked domain list is in ServerAlias
     #addon_domains = yaml_parsed_cpaneluser.get('addon_domains')     #This data is irrelevant as addon is mapped to a subdomain
     sub_domains = yaml_parsed_cpaneluser.get('sub_domains')
     
-    nginx_confgen(cpaneluser, main_domain)  #Generate conf for main domain
+    # Check if a user is suspended and set a flag accordingly
+    if os.path.exists("/var/cpanel/users.cache/" + cpaneluser):
+        with open("/var/cpanel/users.cache/" + cpaneluser) as users_file:
+            json_parsed_cpusersfile = json.load(users_file)
+        if json_parsed_cpusersfile.get('SUSPENDED') == 1:
+            is_suspended = True
+        else:
+            is_suspended = False
+    else:
+        # If cpanel users file is not present silently exit
+        sys.exit(0)
+    
+    nginx_confgen(is_suspended, cpaneluser, main_domain)  #Generate conf for main domain
     
     for domain_in_subdomains in sub_domains:
-        nginx_confgen(cpaneluser, domain_in_subdomains)  #Generate conf for sub domains which takes care of addon as well
+        nginx_confgen(is_suspended, cpaneluser, domain_in_subdomains)  #Generate conf for sub domains which takes care of addon as well
+    
+    os.rmdir(mutex_dir)

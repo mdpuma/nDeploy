@@ -11,3 +11,5 @@
   LogFormat "%a %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\"" combined
   CustomLog logs/access_log combined
 </IfModule>
+
+SetEnvIf X-Forwarded-Proto https HTTPS=on

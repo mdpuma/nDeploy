@@ -5,6 +5,7 @@ import sys
 import yaml
 import cgi
 import cgitb
+import jinja2
 
 
 __author__ = "Anoop P Alias"
@@ -37,13 +38,6 @@ form = cgi.FieldStorage()
 
 print('Content-Type: text/html')
 print('') 
-print('<html>')
-print('<head>')
-print('<title>nDeploy</title>')
-print('</head>')
-print('<body>')
-print('<a href="ndeploy.live.cgi"><img border="0" src="nDeploy.png" alt="nDeploy"></a>')
-print('<HR>')
 if form.getvalue('domain') and form.getvalue('backend'):
     mydomain = form.getvalue('domain')
     mybackend = form.getvalue('backend')
@@ -52,6 +46,9 @@ if form.getvalue('domain') and form.getvalue('backend'):
         profileyaml_data_stream = open(profileyaml, 'r')
         yaml_parsed_profileyaml = yaml.safe_load(profileyaml_data_stream)
         profileyaml_data_stream.close()
+        redirecttossl = yaml_parsed_profileyaml.get('redirecttossl')
+        http2 = yaml_parsed_profileyaml.get('http2')
+        testcookie = yaml_parsed_profileyaml.get('testcookie')
         if os.path.isfile(backend_config_file) and os.path.isfile(profile_config_file):
             backend_data_yaml = open(backend_config_file, 'r')
             backend_data_yaml_parsed = yaml.safe_load(backend_data_yaml)
@@ -59,37 +56,27 @@ if form.getvalue('domain') and form.getvalue('backend'):
             profile_data_yaml = open(profile_config_file,'r')
             profile_data_yaml_parsed = yaml.safe_load(profile_data_yaml)
             profile_data_yaml.close()
-            print(('<p style="background-color:LightGrey">CONFIGURE:  '+mydomain+'</p>'))
-            print('<HR>')
+            
             profile_branch_dict = profile_data_yaml_parsed[mybackend]
             backends_branch_dict = backend_data_yaml_parsed[mybackend]
-            print('<form action="update.live.cgi" method="post">')
-            print('<p style="background-color:LightGrey">Select backend version: </p>')
-            print('<select name="version" size="5">')
-            for versions_defined in list(backends_branch_dict.keys()):
-                print(('<option value="'+versions_defined+'">'+versions_defined+'</option>'))
-            print('</select>')
-            print('<HR>')
-            print('<p style="background-color:LightGrey">Select a configuration template: </p>')
-            print('<select name="pcode" size="5">')
-            for profile_code in list(profile_branch_dict.keys()):
-                iter_profile_string = profile_branch_dict[profile_code]
-                print(('<option value="'+profile_code+'">'+iter_profile_string+'</option>'))
-            print('</select>')
-            print('<HR>')
-            print('<p style="background-color:LightGrey">Enable/Disable nginx test robot: </p>')
-            print('<input type="radio" name="testrobot" value="0" /> DISABLE')
-            print('<input type="radio" name="testrobot" value="1" checked /> ENABLE')
-            print('<HR>')
-            print(('<input style="display:none" name="domain" value="'+mydomain+'">'))
-            print(('<input style="display:none" name="backend" value="'+mybackend+'">'))
-            print('<input type="submit" value="GENERATE">')
-            print('</form>')
+            
+            # Initiate Jinja2 templateEnv
+            templateLoader = jinja2.FileSystemLoader(installation_path + "/nDeploy_cp/templates")
+            templateEnv = jinja2.Environment(loader=templateLoader)
+            
+            server_template = templateEnv.get_template('autoconfig2.j2')
+            templateVars = {"DOMAIN": mydomain,
+                        "BACKEND": mybackend,
+                        "PROFILES": profile_branch_dict,
+                        "BACKENDS": backends_branch_dict,
+                        "REDIRECTTOSSL": redirecttossl,
+                        "HTTP2": http2,
+                        "TESTCOOKIE": testcookie,
+                        }
+            print(server_template.render(templateVars))
         else:
             print('ERROR : nDeploy backend defs file i/o error')
     else:
         print('ERROR : domain-data file i/o error')
 else:
     print('ERROR : Forbidden')
-print('</body>')
-print('</html>')
