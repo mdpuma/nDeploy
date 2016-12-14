@@ -72,14 +72,14 @@ if os.path.isfile("/var/cpanel/userdata/" + cpaneluser + "/" + main_domain + "_S
     remove_file(nginx_dir+"/sites-enabled/"+main_domain+"_SSL.include")
     remove_file(nginx_dir+"/ssl/"+main_domain+".crt")
 for domain_in_subdomains in sub_domains:
+    domain_in_subdomains_orig=domain_in_subdomains
     if domain_in_subdomains.startswith("*"):
-        domain_in_subdomains_orig=domain_in_subdomains
         domain_in_subdomains="_wildcard_."+domain_in_subdomains.replace('*.','')
     remove_file(installation_path+"/domain-data/"+domain_in_subdomains)
     remove_file(nginx_dir+"/sites-enabled/"+domain_in_subdomains+".conf")
     remove_file(nginx_dir+"/sites-enabled/"+domain_in_subdomains+".include")
     subprocess.call("rm -rf /var/resin/hosts/"+domain_in_subdomains, shell=True)
-    if os.path.isfile("/var/cpanel/userdata/" + cpaneluser + "/" + domain_in_subdomains + "_SSL"):
+    if os.path.isfile("/var/cpanel/userdata/" + cpaneluser + "/" + domain_in_subdomains_orig + "_SSL"):
         remove_file(installation_path+"/domain-data/"+domain_in_subdomains_orig+"_SSL")
         remove_file(nginx_dir+"/sites-enabled/"+domain_in_subdomains+"_SSL.conf")
         remove_file(nginx_dir+"/sites-enabled/"+domain_in_subdomains+"_SSL.include")

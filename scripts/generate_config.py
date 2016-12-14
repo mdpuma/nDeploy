@@ -236,6 +236,13 @@ def nginx_confgen(is_suspended, user_name, domain_name):
     testcookie = yaml_parsed_domain_data.get('testcookie', None)
     fastcgi_socket = False
     
+    if apptemplate_code is None:
+        apptemplate_code = '1000.j2'
+      
+    if os.path.isfile(installation_path+'/conf/templates/'+apptemplate_code) is False:
+        print('No apptemplate_code ' + apptemplate_code + ' in ' + installation_path + '/conf/templates')
+        return 1
+    
     # Since we have all data needed, lets render the conf to a file
     if os.path.isfile(installation_path+'/conf/templates/server.conf.local.j2'):
         TEMPLATE_FILE = 'server.conf.local.j2'
