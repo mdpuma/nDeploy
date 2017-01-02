@@ -3,3 +3,7 @@
 cd /opt/nDeploy/domain-data
 sed -i 's/profile/apptemplate_code/' *
 sed -E -i "/apptemplate_code/s/: '(.*)'/: \'\1.j2\'/" *
+
+cd /opt/nDeploy/conf
+rm -vi [12345]*.tmpl
+rm -vi domain_data.suspended domain_data.yaml.tmpl debug.nginx.tmpl php-fpm.pool.tmpl server_ssl.tmpl server.tmpl
