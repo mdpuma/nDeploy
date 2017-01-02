@@ -12,6 +12,7 @@
        "name" : "Apache php-fpm",
        "type" : "link",
        "id" : "ndeploy_apache",
-       "uri" : "apache_fpm_cp/apache_fpm.live.cgi\"target=\"_blank\""
+       "uri" : "apache_fpm_cp/apache_fpm.live.cgi",
+       "target" : "_blank"
     }
 ] 

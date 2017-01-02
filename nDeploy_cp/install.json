@@ -9,9 +9,10 @@
        "icon" : "nDeploy.png",
        "group_id" : "ndeploy_grp",
        "order" : 1,
-       "name" : "nginX",
+       "name" : "nginx web server",
        "type" : "link",
        "id" : "ndeploy",
-       "uri" : "nDeploy_cp/ndeploy.live.cgi\"target=\"_blank\""
+       "uri" : "nDeploy_cp/ndeploy.live.cgi",
+       "target" : "_blank"
     }
 ] 
