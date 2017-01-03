@@ -1,15 +1,16 @@
 #proxy pass to a backend webserver listening on port 8000
 
 root {{ DOCUMENTROOT }};
-{% if TESTCOOKIE == 1 %}include /etc/nginx/testcookie/testcookie_aes_locations.conf;{% endif %}
+{% if TESTCOOKIE == "1" %}include /etc/nginx/testcookie/testcookie_aes_locations.conf;{% endif %}
 
 location / {
-	{% if TESTCOOKIE == 1 %}testcookie on;{% endif %}
+	{% if TESTCOOKIE == "1" %}testcookie on;{% endif %}
 	# limit_req zone=rate_10 burst=10;
 	proxy_pass http://{{ CPANELIP }}:{{ UPSTREAM_PORT }};
 	access_log off;
 	
 	location ~* ^.+\.(jpg|jpeg|gif|png|ico|css|js|zip|tgz|gz|rar|bz2|doc|xls|exe|pdf|ppt|txt|tar|bmp|rtf|swf)$ {
+		testcookie off;
 		expires 31d;
 		
 		# access_log /usr/local/apache/domlogs/{{ DOMAINNAME }} main;
@@ -19,7 +20,7 @@ location / {
 	}
 }
 location @fallback {
-	{% if TESTCOOKIE == 1 %}testcookie on;{% endif %}
+	{% if TESTCOOKIE == "1" %}testcookie on;{% endif %}
 	# limit_req zone=rate_10 burst=10;
 	proxy_pass http://{{ CPANELIP }}:{{ UPSTREAM_PORT }};
 	access_log off;
