@@ -1,10 +1,10 @@
 root {{ DOCUMENTROOT }};
 index index.php index.html index.htm;
 
-{% if TESTCOOKIE %}include /etc/nginx/testcookie/testcookie_aes_locations.conf;{% endif %}
+{% if TESTCOOKIE == 'enabled' %}include /etc/nginx/testcookie/testcookie_aes_locations.conf;{% endif %}
 
 location / {
-	{% if TESTCOOKIE %}testcookie on;{% endif %}
+	{% if TESTCOOKIE == 'enabled' %}testcookie on;{% endif %}
 	try_files $uri $uri/ /index.php?q=$uri&$args;
 }
 
@@ -19,7 +19,7 @@ location ~* ^.+\.(jpg|jpeg|gif|png|ico|css|js|zip|tgz|gz|rar|bz2|doc|xls|exe|pdf
 }
 
 location ~ \.php$ {
-	{% if TESTCOOKIE %}testcookie on;{% endif %}
+	{% if TESTCOOKIE == 'enabled' %}testcookie on;{% endif %}
 	try_files $uri =404;
 	fastcgi_pass unix:{{ SOCKETFILE }};
 	fastcgi_index index.php;
@@ -27,7 +27,7 @@ location ~ \.php$ {
 }
 
 location @fallback {
-	{% if TESTCOOKIE %}testcookie on;{% endif %}
+	{% if TESTCOOKIE == 'enabled' %}testcookie on;{% endif %}
 	fastcgi_pass unix:{{ SOCKETFILE }};
 	fastcgi_index index.php;
 	include /etc/nginx/fastcgi_params;

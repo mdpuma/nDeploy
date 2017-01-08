@@ -20,37 +20,6 @@ echo "[`date`][pid $$] Called script $0 $*" >> /opt/nDeploy/logs/hook.log
 
 
 case "$2" in
-	0)
-		#/var/cpanel/userdata/example/example.com_SSL => example
-		CPANELUSER=$(echo $1|awk -F'/' '{print $5}')
-		FILENAME=$(basename $1)
-		
-		# this is already doing by accountcreate_hook_post.pl
-		# call when is created directory
-		#if [ $3 == "IN_CREATE|IN_ISDIR" ]; then
-		#	echo "[`date`][pid $$] Run INCREATE|IN_ISDIR part /opt/nDeploy/scripts/apache_php_config_generator.py $CPANELUSER"
-		#	/opt/nDeploy/scripts/apache_php_config_generator.py $CPANELUSER
-		#fi
-		
-		# this is needed for remove subdomains/domains
-		# call when is removed file
-		if [ $3 == "IN_DELETE" ]; then
-			DOMAIN=$(echo $1|awk -F'/' '{print $6}')
-			if [ -f /opt/nDeploy/domain-data/$DOMAIN ] && [ -n "$DOMAIN" ]; then
-				/opt/nDeploy/scripts/hook_domain_remove.py $DOMAIN
-				echo "[`date`][pid $$] Run hook_domain_remove.py part" >> /opt/nDeploy/logs/hook.log
-				
-				/opt/nDeploy/scripts/reload_nginx.sh
-				echo "[`date`][pid $$] Run reload_nginx part" >> /opt/nDeploy/logs/hook.log
-				exit 0;
-			fi
-		fi
-		
-		[ $FILENAME == "main" ] && exit 0
-		if [ ! -f /opt/nDeploy/domain-data/$FILENAME ] && [ $FILENAME != "main" ] && [ $3 != "IN_CREATE" ]; then
-			exit 0
-		fi
-		;;
 	1)
 		[ $3 != "IN_MODIFY" ] && exit 0
 		

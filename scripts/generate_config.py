@@ -183,28 +183,27 @@ def nginx_confgen(is_suspended, user_name, domain_name):
         hasipv6 = False
         ipv6_addr = None
         
+    hasssl = 'disabled'
+    redirecttossl = False
+    sslcertificatefile = None
+    sslcertificatekeyfile = None
+    sslcacertificatefile = None
+    sslcombinedcert = None
     if os.path.isfile("/var/cpanel/userdata/" + user_name + "/" + domain_name + "_SSL"):
-        hasssl = 'enabled'
         cpdomainyaml_ssl = "/var/cpanel/userdata/" + user_name + "/" + domain_name + "_SSL"
         cpaneldomain_ssl_data_stream = open(cpdomainyaml_ssl, 'r')
         yaml_parsed_cpaneldomain_ssl = yaml.safe_load(cpaneldomain_ssl_data_stream)
         sslcertificatefile = yaml_parsed_cpaneldomain_ssl.get('sslcertificatefile')
         sslcertificatekeyfile = yaml_parsed_cpaneldomain_ssl.get('sslcertificatekeyfile')
         sslcacertificatefile = yaml_parsed_cpaneldomain_ssl.get('sslcacertificatefile')
-        if sslcacertificatefile:
+        if sslcacertificatefile and os.path.isfile(sslcertificatefile) == True and os.path.isfile(sslcertificatekeyfile) == True and os.path.isfile(sslcacertificatefile) == True:
+            hasssl = 'enabled'
             sslcombinedcert = "/etc/nginx/ssl/" + domain_name + ".crt"
             filenames = [sslcertificatefile, sslcacertificatefile]
             with codecs.open(sslcombinedcert, 'w', 'utf-8') as outfile:
                 for fname in filenames:
                     with codecs.open(fname, 'r', 'utf-8') as infile:
                         outfile.write(infile.read()+"\n")
-    else:
-        hasssl = 'disabled'
-        redirecttossl = False
-        sslcertificatefile = None
-        sslcertificatekeyfile = None
-        sslcacertificatefile = None
-        sslcombinedcert = None
     
     # Get all data from nDeploy domain-data file
     if is_suspended:
@@ -231,10 +230,14 @@ def nginx_confgen(is_suspended, user_name, domain_name):
     apptemplate_code = yaml_parsed_domain_data.get('apptemplate_code', None)
     backend_path = yaml_parsed_domain_data.get('backend_path', None)
     backend_version = yaml_parsed_domain_data.get('backend_version', None)
-    redirecttossl = yaml_parsed_domain_data.get('redirecttossl', None)
     http2 = yaml_parsed_domain_data.get('http2', None)
+    hsts = yaml_parsed_domain_data.get('hsts', None)
+    redirecttossl = yaml_parsed_domain_data.get('redirect_to_ssl', None)
     testcookie = yaml_parsed_domain_data.get('testcookie', None)
     fastcgi_socket = False
+    
+    if hasssl == 'disabled':
+        redirecttossl = 'disabled'
     
     if apptemplate_code is None:
         apptemplate_code = '1000.j2'
@@ -254,6 +257,7 @@ def nginx_confgen(is_suspended, user_name, domain_name):
                     "CPIPVSIX": ipv6_addr,
                     "IPVSIX": hasipv6,
                     "HTTP2": http2,
+                    "HSTS": hsts,
                     "CPANELSSLCRT": sslcombinedcert,
                     "CPANELSSLKEY": sslcertificatekeyfile,
                     "CPANELCACERT": sslcacertificatefile,
@@ -270,40 +274,40 @@ def nginx_confgen(is_suspended, user_name, domain_name):
     if os.path.isfile(installation_path + "/conf/custom/" + domain_sname):
         shutil.copyfile(installation_path + "/conf/custom/" + domain_sname, nginx_dir + "/sites-enabled/" + domain_sname + ".include")
     else:
-	app_template = templateEnv.get_template(apptemplate_code)
-	# We configure the backends first if necessary
-	if backend_category == 'PROXY':
-	    if backend_version == 'railo_tomcat':
-		railo_vhost_add_tomcat(domain_server_name, document_root, *serveralias_list)
-	    elif backend_version == 'railo_resin':
-		railo_vhost_add_resin(user_name, domain_server_name, document_root, *serveralias_list)
-	elif backend_category == 'PHP':
-	    fastcgi_socket = backend_path + "/var/run/" + user_name + ".sock"
-	    if not os.path.isfile(fastcgi_socket):
-		if os.path.isfile(installation_path+"/conf/secure-php-enabled"):
-		    php_secure_backend_add(user_name, domain_home, backend_version)
-		else:
-		    php_backend_add(user_name, domain_home, backend_version, backend_path)
-	elif backend_category == 'HHVM_NOBODY':
-	    fastcgi_socket = backend_path
-	elif backend_category == 'HHVM':
-	    fastcgi_socket = domain_home+"/hhvm.sock"
-	    if not os.path.isfile(fastcgi_socket):
-		hhvm_backend_add(user_name, domain_home)
-	# We generate the app config from template next
-	apptemplateVars = {"CPANELIP": cpanel_ipv4,
-			  "DOMAINNAME": domain_sname,
-			  "SOCKETFILE": fastcgi_socket,
-			  "DOCUMENTROOT": document_root,
-			  "UPSTREAM_PORT": backend_path,
-			  "TESTCOOKIE": testcookie,
-			  "PATHTOPYTHON": backend_path,
-			  "PATHTORUBY": backend_path,
-			  "PATHTONODEJS": backend_path,
-			  }
-	generated_app_config = app_template.render(apptemplateVars)
-	with codecs.open(nginx_dir + "/sites-enabled/" + domain_sname + ".include", "w", 'utf-8') as confout:
-	    confout.write(generated_app_config)
+        app_template = templateEnv.get_template(apptemplate_code)
+        # We configure the backends first if necessary
+        if backend_category == 'PROXY':
+            if backend_version == 'railo_tomcat':
+                railo_vhost_add_tomcat(domain_server_name, document_root, *serveralias_list)
+            elif backend_version == 'railo_resin':
+                railo_vhost_add_resin(user_name, domain_server_name, document_root, *serveralias_list)
+        elif backend_category == 'PHP':
+            fastcgi_socket = backend_path + "/var/run/" + user_name + ".sock"
+            if not os.path.isfile(fastcgi_socket):
+                if os.path.isfile(installation_path+"/conf/secure-php-enabled"):
+                    php_secure_backend_add(user_name, domain_home, backend_version)
+                else:
+                    php_backend_add(user_name, domain_home, backend_version, backend_path)
+        elif backend_category == 'HHVM_NOBODY':
+            fastcgi_socket = backend_path
+        elif backend_category == 'HHVM':
+            fastcgi_socket = domain_home+"/hhvm.sock"
+            if not os.path.isfile(fastcgi_socket):
+                hhvm_backend_add(user_name, domain_home)
+        # We generate the app config from template next
+        apptemplateVars = {"CPANELIP": cpanel_ipv4,
+                          "DOMAINNAME": domain_sname,
+                          "SOCKETFILE": fastcgi_socket,
+                          "DOCUMENTROOT": document_root,
+                          "UPSTREAM_PORT": backend_path,
+                          "TESTCOOKIE": testcookie,
+                          "PATHTOPYTHON": backend_path,
+                          "PATHTORUBY": backend_path,
+                          "PATHTONODEJS": backend_path,
+                          }
+        generated_app_config = app_template.render(apptemplateVars)
+        with codecs.open(nginx_dir + "/sites-enabled/" + domain_sname + ".include", "w", 'utf-8') as confout:
+            confout.write(generated_app_config)
         
 # End Function defs
 

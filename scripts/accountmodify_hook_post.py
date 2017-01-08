@@ -3,23 +3,25 @@
 
 import yaml
 import sys
-import json
 import os
-import signal
 import time
 import subprocess
-
+try:
+    import simplejson as json
+except ImportError:
+    import json
 
 __author__ = "Anoop P Alias"
-__copyright__ = "Copyright 2014, PiServe Technologies Pvt Ltd , India"
+__copyright__ = "Copyright Anoop P Alias"
 __license__ = "GPL"
-__email__ = "anoop.alias@piserve.com"
+__email__ = "anoopalias01@gmail.com"
 
 
+# This script is supposed to be called by cPanel after an account is modified
+# All we need to do is call config generator with the new username as arg
 installation_path = "/opt/nDeploy"  # Absolute Installation Path
 backend_config_file = installation_path+"/conf/backends.yaml"
 nginx_dir = "/etc/nginx/sites-enabled/"
-
 
 # Function defs
 def remove_php_fpm_pool(user_name):
@@ -36,24 +38,25 @@ def remove_php_fpm_pool(user_name):
     os.remove("/opt/fpmsockets/"+user_name+".sock")
     return
 
+def silentremove(filename):
+    try:
+        os.remove(filename)
+    except OSError:
+        pass
 
-
+# Get the values send by cPanel in stdin
 cpjson = json.load(sys.stdin)
 mydict = cpjson["data"]
+# Assuming someone changed the cPanel username
 cpanelnewuser = mydict["newuser"]
 cpaneluser = mydict["user"]
 maindomain = mydict["domain"]
-if os.path.isfile(installation_path+"/lock/todel_"+cpaneluser):
-    fhandle = open(installation_path+"/lock/todel_"+cpaneluser,'r')
-    mylines = fhandle.read().splitlines()
-    for line in mylines:
-        os.remove(line)
-    fhandle.close()
-    os.remove(installation_path+"/lock/todel_"+cpaneluser)
-if cpaneluser != cpanelnewuser:    
+# Calling the config generate script for the user
+if cpanelnewuser != cpaneluser:
+    subprocess.call(installation_path+"/scripts/generate_config.py "+cpanelnewuser, shell=True)
+    silentremove(installation_path+"/conf/php-fpm.d/"+cpaneluser+".conf")
     remove_php_fpm_pool(cpaneluser)
-subprocess.call("/opt/nDeploy/scripts/generate_config.py "+cpanelnewuser, shell=True)
-subprocess.call("/opt/nDeploy/scripts/apache_php_config_generator.py "+cpanelnewuser, shell=True)
-subprocess.call("/opt/nDeploy/scripts/init_backends.pl --action=reload", shell=True)
-subprocess.call("/opt/nDeploy/scripts/reload_nginx.sh", shell=True)
-print(("1 nDeploy:postmodify:"+cpanelnewuser))
+    print(("1 nDeploy:postmodify:"+cpanelnewuser))
+else:
+    subprocess.call(installation_path+"/scripts/generate_config.py "+cpaneluser, shell=True)
+    print(("1 nDeploy:postmodify:"+cpaneluser))

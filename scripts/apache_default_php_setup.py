@@ -10,7 +10,7 @@ __email__ = "anoop.alias@piserve.com"
 
 installation_path = "/opt/nDeploy"
 
-template_file = installation_path+"/conf/user_data.yaml.tmpl"
+template_file = installation_path+"/conf/templates/user_data.yaml"
 backend_config_file = installation_path+"/conf/backends.yaml"
 backend_data_yaml = open(backend_config_file, 'r')
 backend_data_yaml_parsed = yaml.safe_load(backend_data_yaml)

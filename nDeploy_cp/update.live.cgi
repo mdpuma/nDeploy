@@ -68,16 +68,7 @@ if form.getvalue('domain'):
         backend_data_yaml.close()
         print(('<p style="background-color:LightGrey">CONFIGURE:  '+mydomain+'</p>'))
         print('<HR>')
-        if form.getvalue('textcontent'):
-            text_content = form.getvalue('textcontent')
-            custom_conf_file = myhome + '/' + mydomain + '_nginx.include.custom.conf'
-            with open(custom_conf_file, 'w') as outfile:
-                outfile.write(text_content)
-            outfile.close()
-            update_config_test_status(profileyaml, 1)
-            print('<p style="background-color:LightGrey">(!) Custom config with errors will not be activated </p>')
-            print(('<p style="background-color:LightGrey">(!) All custom edits are saved in ' + myhome + '/' + mydomain + '_nginx.include.custom.conf'+'</p>'))
-        elif form.getvalue('version') and form.getvalue('pcode') and form.getvalue('testcookie') and form.getvalue('backend'):
+        if form.getvalue('version') and form.getvalue('pcode') and form.getvalue('testcookie') and form.getvalue('backend'):
             mybackend = form.getvalue('backend')
             myversion = form.getvalue('version')
             backends_branch_dict = backend_data_yaml_parsed[mybackend]
@@ -85,9 +76,10 @@ if form.getvalue('domain'):
             yaml_parsed_profileyaml['backend_path'] = mypath
             yaml_parsed_profileyaml['backend_category'] = mybackend
             yaml_parsed_profileyaml['backend_version'] = myversion
-            yaml_parsed_profileyaml['profile'] = form.getvalue('pcode')
-            yaml_parsed_profileyaml['redirecttossl'] = form.getvalue('redirecttossl')
+            yaml_parsed_profileyaml['apptemplate_code'] = form.getvalue('pcode')
+            yaml_parsed_profileyaml['redirect_to_ssl'] = form.getvalue('redirecttossl')
             yaml_parsed_profileyaml['http2'] = form.getvalue('http2')
+            yaml_parsed_profileyaml['hsts'] = 'enabled'
             yaml_parsed_profileyaml['testcookie'] = form.getvalue('testcookie')
             with open(profileyaml, 'w') as yaml_file:
                 yaml_file.write(yaml.dump(yaml_parsed_profileyaml, default_flow_style=False))

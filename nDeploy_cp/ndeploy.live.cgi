@@ -47,7 +47,7 @@ print('<body>')
 print('<a href="ndeploy.live.cgi"><img border="0" src="nDeploy.png" alt="nDeploy"></a>')
 print('<HR>')
 print('<form action="selector.live.cgi" method="post">')
-print('<select name="domain" size="5">')
+print('<select name="domain" size="10">')
 if main_domain.startswith('*.'):
     print(('<option value="_wildcard_.'+main_domain.replace('*.','')+'">'+main_domain+'</option>'))
 else:

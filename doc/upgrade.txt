@@ -2,8 +2,16 @@
 
 cd /opt/nDeploy/domain-data
 sed -i 's/profile/apptemplate_code/' *
-sed -E -i "/apptemplate_code/s/: '(.*)'/: \'\1.j2\'/" *
+sed -E -i "/apptemplate_code/s/: '([0-9]*)'/: \'\1.j2\'/" *
+sed -i 's/redirecttossl/redirect_to_ssl/' *
+sed -E -i '/testconf|customconf/d' *
+sed -E -i '/user:/d' *
+sed -E -i 's/: 0$/: disabled/' *
+sed -E -i 's/: 1$/: enabled/' *
+sed -i "s/: '0'/: disabled/" *
+sed -i "s/: '1'/: enabled/" *
 
 cd /opt/nDeploy/conf
 rm -vi [12345]*.tmpl
 rm -vi domain_data.suspended domain_data.yaml.tmpl debug.nginx.tmpl php-fpm.pool.tmpl server_ssl.tmpl server.tmpl
+mv /opt/nDeploy/conf/user_data.yaml.tmpl /opt/nDeploy/conf/templates/user_data.yaml

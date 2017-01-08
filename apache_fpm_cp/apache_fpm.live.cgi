@@ -52,14 +52,16 @@ if os.path.isfile(backend_config_file):
         yaml_parsed_userdata = yaml.safe_load(userdatayaml_data_stream)
         userdatayaml_data_stream.close()
         myversion = yaml_parsed_userdata.get('PHP')
-        print('Active PHP-FPM backend: '+myversion)
+        print('Active PHP-FPM backend: <b>'+myversion+'</b>')
         print('<HR>')
         print('<form action="save_phpversion.live.cgi" method="post">')
         print('Select new PHP version')
-        print('<select name="phpversion">')
-        for versions_defined in list(php_backends_dict.keys()):
-            print(('<option value="'+versions_defined+'">'+versions_defined+'</option>'))
-        print('</select>')
+        
+        for version in list(php_backends_dict.keys()):
+            print('<label><input type="radio" name="phpversion" value="'+version+'"'),
+            if version == myversion:
+                print(' checked'),
+            print('/>'+version+'</label>')
         print('<HR>')
         print('<input type="submit" value="SUBMIT">')
         print('</form>')

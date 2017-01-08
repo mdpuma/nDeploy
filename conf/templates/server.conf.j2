@@ -7,12 +7,12 @@ server {
 	access_log /usr/local/apache/domlogs/{{ DOMAINNAME }}-bytes_log bytes_log;
 	disable_symlinks if_not_owner from={{ DOCUMENTROOT }};
 	
-	{% if REDIRECTTOSSL == 1 %}return 301 https://$host$request_uri;{% else %}include /etc/nginx/sites-enabled/{{ DOMAINNAME }}.include;{% endif %}
+	{% if REDIRECTTOSSL == 'enabled' %}return 301 https://$host$request_uri;{% else %}include /etc/nginx/sites-enabled/{{ DOMAINNAME }}.include;{% endif %}
 }
 
 {% if SSL == 'enabled' %}
 server {
-	listen {{ CPANELIP }}:443 {% if HTTP2 == 1 %}http2{% else %}ssl{% endif %};
+	listen {{ CPANELIP }}:443 ssl{% if HTTP2 == 'enabled' %} http2{% endif %};
 	#CPIPVSIX:443;
 	
 	server_name {{ DOMAINLIST }};
@@ -24,6 +24,7 @@ server {
 	ssl on;
 	ssl_certificate {{ CPANELSSLCRT }};
 	ssl_certificate_key {{ CPANELSSLKEY }};
+	{% if HSTS == 'enabled' %}add_header Strict-Transport-Security "max-age=31536000" always;{% endif %}
 	
 	include /etc/nginx/sites-enabled/{{ DOMAINNAME }}.include;
 }

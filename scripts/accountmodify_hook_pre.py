@@ -1,71 +1,67 @@
 #!/usr/bin/env python
 
 
-import yaml
 import sys
-import json
 import os
 import subprocess
+try:
+    import simplejson as json
+except ImportError:
+    import json
+import shutil
 
 
 __author__ = "Anoop P Alias"
-__copyright__ = "Copyright 2014, PiServe Technologies Pvt Ltd , India"
+__copyright__ = "Copyright Anoop P Alias"
 __license__ = "GPL"
-__email__ = "anoop.alias@piserve.com"
+__email__ = "anoopalias01@gmail.com"
 
 
+# Define a function to silently remove files
+def silentremove(filename):
+    try:
+        os.remove(filename)
+    except OSError:
+        pass
+
+
+# This hook script is called by cPanel before an account is modified
+# We are intrested in username and main-domain name modifications
+# Mainly take care of removing stuff here as the post-accountmodify hook will
+# take care of creating new configs
 installation_path = "/opt/nDeploy"  # Absolute Installation Path
-backend_config_file = installation_path+"/conf/backends.yaml"
 nginx_dir = "/etc/nginx/sites-enabled/"
 
-
-
+# Get data send by cPanel on stdin
 cpjson = json.load(sys.stdin)
 mydict = cpjson["data"]
 cpanelnewuser = mydict["newuser"]
 cpaneluser = mydict["user"]
 maindomain = mydict["domain"]
-cpuserdatayaml = "/var/cpanel/userdata/" + cpaneluser + "/main"
-cpaneluser_data_stream = open(cpuserdatayaml, 'r')
-yaml_parsed_cpaneluser = yaml.safe_load(cpaneluser_data_stream)
-cpaneluser_data_stream.close()
-main_domain = yaml_parsed_cpaneluser.get('main_domain')
-sub_domains = yaml_parsed_cpaneluser.get('sub_domains')
-if cpanelnewuser != cpaneluser:
-    subprocess.call("touch "+installation_path+"/lock/todel_"+cpaneluser, shell=True)
-    fhandle = open(installation_path+"/lock/todel_"+cpaneluser, 'a')
-    fhandle.write(installation_path+"/domain-data/"+main_domain+"\n")
-    fhandle.write(installation_path+"/user-data/"+cpaneluser+"\n")
-    fhandle.write(nginx_dir+main_domain+".conf\n")
-    fhandle.write(nginx_dir+main_domain+".include\n")
-    subprocess.call("rm -rf /var/resin/hosts/"+main_domain, shell=True)
-    if os.path.isfile("/var/cpanel/userdata/" + cpaneluser + "/" + main_domain + "_SSL"):
-        fhandle.write(installation_path+"/domain-data/"+main_domain+"_SSL\n")
-        fhandle.write(nginx_dir+main_domain+"_SSL.conf\n")
-        fhandle.write(nginx_dir+main_domain+"_SSL.include\n")
+
+# Get details of current main-domain and sub-domain stored in cPanel datastore
+cpuserdatajson = "/var/cpanel/userdata/" + cpaneluser + "/main.cache"
+with open(cpuserdatajson, 'r') as cpaneluser_data_stream:
+    json_parsed_cpaneluser = json.load(cpaneluser_data_stream)
+main_domain = json_parsed_cpaneluser.get('main_domain')
+sub_domains = json_parsed_cpaneluser.get('sub_domains')
+
+# If cPanel username is modified
+if cpanelnewuser != cpaneluser or maindomain != main_domain:
+    if cpanelnewuser != cpaneluser:
+        # Remove php-fpm pool file and reload php-fpm
+        silentremove(installation_path + "/php-fpm.d/" + cpaneluser + ".conf")
+        subprocess.Popen(installation_path+"/scripts/init_backends.pl --action=reload", shell=True)
+    # Remove domains associated with the user
+    silentremove(installation_path+"/domain-data/"+main_domain)
+    silentremove(nginx_dir+main_domain+".conf")
+    silentremove(nginx_dir+main_domain+".include")
     for domain_in_subdomains in sub_domains:
-        fhandle.write(installation_path+"/domain-data/"+domain_in_subdomains+"\n")
-        fhandle.write(nginx_dir+domain_in_subdomains+".conf\n")
-        fhandle.write(nginx_dir+domain_in_subdomains+".include\n")
-        subprocess.call("rm -rf /var/resin/hosts/"+domain_in_subdomains, shell=True)
-        if os.path.isfile("/var/cpanel/userdata/" + cpaneluser + "/" + domain_in_subdomains + "_SSL"):
-            fhandle.write(installation_path+"/domain-data/"+domain_in_subdomains+"_SSL\n")
-            fhandle.write(nginx_dir+domain_in_subdomains+"_SSL.conf\n")
-            fhandle.write(nginx_dir+domain_in_subdomains+"_SSL.include\n")
-    fhandle.close()
-    print(("1 nDeploy:olduser:"+cpaneluser+":newuser:"+cpanelnewuser))
-elif maindomain != main_domain:
-    subprocess.call("touch "+installation_path+"/lock/todel_"+cpaneluser, shell=True)
-    fhandle = open(installation_path+"/lock/todel_"+cpaneluser, 'a')
-    fhandle.write(installation_path+"/domain-data/"+main_domain+"\n")
-    fhandle.write(nginx_dir+main_domain+".conf\n")
-    fhandle.write(nginx_dir+main_domain+".include\n")
-    if os.path.isfile("/var/cpanel/userdata/" + cpaneluser + "/" + main_domain + "_SSL"):
-        fhandle.write(installation_path+"/domain-data/"+main_domain+"_SSL\n")
-        fhandle.write(nginx_dir+main_domain+"_SSL.conf\n")
-        fhandle.write(nginx_dir+main_domain+"_SSL.include\n")
-    subprocess.call("/usr/sbin/nginx -s reload", shell=True)
-    fhandle.close()
-    print(("1 nDeploy:olddomain:"+main_domain+":newdomain:"+maindomain))
+        if domain_in_subdomains.startswith("*"):
+            domain_in_subdomains = "_wildcard_."+domain_in_subdomains.replace('*.', '')
+        silentremove(installation_path+"/domain-data/"+domain_in_subdomains)
+        silentremove(nginx_dir+domain_in_subdomains+".conf")
+        silentremove(nginx_dir+domain_in_subdomains+".include")
+    print("1 nDeploy:olddomain:"+main_domain+":newdomain:"+maindomain+":olduser:"+cpaneluser+":newuser:"+cpanelnewuser)
 else:
-    print("1 nDeploy::skiphook")
+    print("1 nDeploy::skiphook::accountModify::pre")

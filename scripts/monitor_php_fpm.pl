@@ -82,6 +82,6 @@ sub check_watcher{
 	}
 }
 
-check_nginx
 check_phpfpm
+check_nginx
 check_watcher

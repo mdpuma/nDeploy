@@ -46,8 +46,11 @@ if form.getvalue('domain') and form.getvalue('backend'):
         profileyaml_data_stream = open(profileyaml, 'r')
         yaml_parsed_profileyaml = yaml.safe_load(profileyaml_data_stream)
         profileyaml_data_stream.close()
-        redirecttossl = yaml_parsed_profileyaml.get('redirecttossl')
+        backend_version = yaml_parsed_profileyaml.get('backend_version')
+        apptemplate_code = yaml_parsed_profileyaml.get('apptemplate_code')
+        redirecttossl = yaml_parsed_profileyaml.get('redirect_to_ssl')
         http2 = yaml_parsed_profileyaml.get('http2')
+        hsts = yaml_parsed_profileyaml.get('hsts')
         testcookie = yaml_parsed_profileyaml.get('testcookie')
         if os.path.isfile(backend_config_file) and os.path.isfile(profile_config_file):
             backend_data_yaml = open(backend_config_file, 'r')
@@ -67,10 +70,13 @@ if form.getvalue('domain') and form.getvalue('backend'):
             server_template = templateEnv.get_template('autoconfig2.j2')
             templateVars = {"DOMAIN": mydomain,
                         "BACKEND": mybackend,
+                        "BACKEND_VERSION": backend_version,
+                        "APPTEMPLATE_CODE": apptemplate_code,
                         "PROFILES": profile_branch_dict,
                         "BACKENDS": backends_branch_dict,
                         "REDIRECTTOSSL": redirecttossl,
                         "HTTP2": http2,
+                        "HSTS": hsts,
                         "TESTCOOKIE": testcookie,
                         }
             print(server_template.render(templateVars))

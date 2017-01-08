@@ -67,9 +67,6 @@ remove_file(nginx_dir+"/sites-enabled/"+main_domain+".include")
 
 subprocess.call("rm -rf /var/resin/hosts/"+main_domain, shell=True)
 if os.path.isfile("/var/cpanel/userdata/" + cpaneluser + "/" + main_domain + "_SSL"):
-    remove_file(installation_path+"/domain-data/"+main_domain+"_SSL")
-    remove_file(nginx_dir+"/sites-enabled/"+main_domain+"_SSL.conf")
-    remove_file(nginx_dir+"/sites-enabled/"+main_domain+"_SSL.include")
     remove_file(nginx_dir+"/ssl/"+main_domain+".crt")
 for domain_in_subdomains in sub_domains:
     domain_in_subdomains_orig=domain_in_subdomains
@@ -80,9 +77,6 @@ for domain_in_subdomains in sub_domains:
     remove_file(nginx_dir+"/sites-enabled/"+domain_in_subdomains+".include")
     subprocess.call("rm -rf /var/resin/hosts/"+domain_in_subdomains, shell=True)
     if os.path.isfile("/var/cpanel/userdata/" + cpaneluser + "/" + domain_in_subdomains_orig + "_SSL"):
-        remove_file(installation_path+"/domain-data/"+domain_in_subdomains_orig+"_SSL")
-        remove_file(nginx_dir+"/sites-enabled/"+domain_in_subdomains+"_SSL.conf")
-        remove_file(nginx_dir+"/sites-enabled/"+domain_in_subdomains+"_SSL.include")
         remove_file(nginx_dir+"/ssl/"+domain_in_subdomains+".crt")
 remove_php_fpm_pool(cpaneluser)
 subprocess.call("/opt/nDeploy/scripts/init_backends.pl --action=reload", shell=True)
