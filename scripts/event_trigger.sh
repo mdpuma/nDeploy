@@ -20,6 +20,15 @@ echo "[`date`][pid $$] Called script $0 $*" >> /opt/nDeploy/logs/hook.log
 
 
 case "$2" in
+	0)
+		if(echo $1 | grep -E "_SSL$");then
+			CPANELUSER=$(echo $1|awk -F'/' '{print $5}')
+			echo "$(date) Conf:Gen ${CPANELUSER}"
+			/opt/nDeploy/scripts/generate_config.py $CPANELUSER
+			echo "[`date`][pid $$] Run generate_config reload_nginx part" >> /opt/nDeploy/logs/hook.log
+		fi
+		exit 0
+		;;
 	1)
 		[ $3 != "IN_MODIFY" ] && exit 0
 		
