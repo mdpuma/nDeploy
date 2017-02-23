@@ -18,4 +18,5 @@ cpjson = json.load(sys.stdin)
 mydict = cpjson["data"]
 cpaneluser = mydict["user"]
 subprocess.call("/opt/nDeploy/scripts/generate_config.py "+cpaneluser, shell=True)  # Assuming escalateprivilege is enabled
+subprocess.call("/opt/nDeploy/scripts/restart_nginx.sh", shell=True)  # Assuming escalateprivilege is enabled
 print(("1 nDeploy:cPaneltrigger:"+cpaneluser))
