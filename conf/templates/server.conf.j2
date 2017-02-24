@@ -7,7 +7,12 @@ server {
 	access_log /usr/local/apache/domlogs/{{ DOMAINNAME }}-bytes_log bytes_log;
 	disable_symlinks if_not_owner from={{ DOCUMENTROOT }};
 	
-	{% if REDIRECTTOSSL == 'enabled' %}return 301 https://$host$request_uri;{% else %}include /etc/nginx/sites-enabled/{{ DOMAINNAME }}.include;{% endif %}
+	location ~ \.txt$ {
+		root {{ DOCUMENTROOT }};
+	}
+	{% if REDIRECTTOSSL == 'enabled' %}location / {
+		return 301 https://$host$request_uri;
+	}{% else %}include /etc/nginx/sites-enabled/{{ DOMAINNAME }}.include;{% endif %}
 }
 
 {% if SSL == 'enabled' %}
