@@ -221,8 +221,8 @@ def nginx_confgen(is_suspended, user_name, domain_name):
                         break
                     times-=1;
                     time.sleep(1)
-         else:
-             print "Can't install ssl certificate without CA chain"
+        else:
+            print "Can't install ssl certificate without CA chain"
     
     # Get all data from nDeploy domain-data file
     if is_suspended:
