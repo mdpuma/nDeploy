@@ -1,0 +1,8 @@
+Typically bad htaccess for php-fpm configuration is
+
+
+RewriteRule ^(.*)\?*$ index.php/$1 [L,QSA]
+
+sed -i 's/index.php\/$1/index.php?\/$1/'
+
+find /home* -maxdepth 5 -type f -name .htaccess -print0 | xargs -0 -n2 grep '.php/' | grep RewriteRule

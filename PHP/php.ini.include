@@ -14,3 +14,18 @@ disable_functions =
 ;disable_functions = exec, popen, system, shell_exec, passthru, ini_alter, dl, openlog, syslog, readlink, symlink, link, pfsockopen, proc_nice, proc_open, proc_close, proc_terminate, pcntl_exec, escapeshellcmd, listen, show_source
 
 always_populate_raw_post_data = -1
+
+opcache.blacklist_filename = /opt/nDeploy/conf/php-blacklist.ini
+opcache.memory_consumption = 500
+opcache.max_accelerated_files = 10000
+opcache.interned_strings_buffer = 64
+opcache.use_cwd = 1
+opcache.validate_timestamps = 1
+opcache.validate_permission = 1
+opcache.revalidate_freq = 30
+opcache.file_update_protection = 30
+opcache.enable_file_override = 0
+opcache.force_restart_timeout = 180
+opcache.error_log = /var/log/php_error.log
+opcache.restrict_api = /etc/nginx
+opcache.fast_shutdown = 0
