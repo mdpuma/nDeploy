@@ -46,7 +46,11 @@ def silentremove(filename):
 
 # Get the values send by cPanel in stdin
 cpjson = json.load(sys.stdin)
-mydict = cpjson["data"]
+mydict = cpjson.get('data')
+if mydict == None:
+    print("1 nDeploy::skiphook::accountModify::pre")
+    sys.exit(0)
+
 # Assuming someone changed the cPanel username
 cpanelnewuser = mydict["newuser"]
 cpaneluser = mydict["user"]

@@ -37,6 +37,7 @@ cpjson = json.load(sys.stdin)
 mydict = cpjson.get('data')
 if mydict == None:
     print("1 nDeploy::skiphook::accountModify::pre")
+    sys.exit(0)
 
 cpanelnewuser = mydict["newuser"]
 cpaneluser = mydict["user"]
