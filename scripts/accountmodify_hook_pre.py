@@ -34,7 +34,10 @@ nginx_dir = "/etc/nginx/sites-enabled/"
 
 # Get data send by cPanel on stdin
 cpjson = json.load(sys.stdin)
-mydict = cpjson["data"]
+mydict = cpjson.get('data')
+if mydict == None:
+    print("1 nDeploy::skiphook::accountModify::pre")
+
 cpanelnewuser = mydict["newuser"]
 cpaneluser = mydict["user"]
 maindomain = mydict["domain"]
