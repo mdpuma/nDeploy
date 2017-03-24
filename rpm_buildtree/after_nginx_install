@@ -17,3 +17,5 @@ if [ -d /etc/systemd ]; then
 else
 	chkconfig --level=235 nginx on
 fi
+
+openssl dhparam -out /etc/nginx/dhparam.pem 2048
