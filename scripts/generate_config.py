@@ -345,8 +345,9 @@ if __name__ == "__main__":
     
     # Check & make mutex
     mutex_dir = installation_path+"/lock/"+cpaneluser+".mutex";
-    while os.path.isdir(mutex_dir):
-        time.sleep(1) # sleep one second and try again
+    if os.path.isdir(mutex_dir):
+        print "Can't run generate_config due mutex exists"
+        sys.exit(0)
     os.mkdir(mutex_dir)
     
     main_domain = yaml_parsed_cpaneluser.get('main_domain')
