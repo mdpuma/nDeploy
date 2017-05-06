@@ -3,6 +3,19 @@
 root {{ DOCUMENTROOT }};
 {% if TESTCOOKIE == 'enabled' %}include /etc/nginx/testcookie/testcookie_aes_locations.conf;{% endif %}
 
+location = /wp-login.php {
+	testcookie on;
+	proxy_pass http://{{ CPANELIP }}:{{ UPSTREAM_PORT }};
+}
+location = /xmlrpc.php {
+	testcookie on;
+	proxy_pass http://{{ CPANELIP }}:{{ UPSTREAM_PORT }};
+}
+location = /administrator {
+	testcookie on;
+	proxy_pass http://{{ CPANELIP }}:{{ UPSTREAM_PORT }};
+}
+
 location / {
 	{% if TESTCOOKIE == 'enabled' %}testcookie on;{% endif %}
 	# limit_req zone=rate_10 burst=10;
