@@ -343,13 +343,6 @@ if __name__ == "__main__":
     cpaneluser_data_stream = open(cpuserdatayaml, 'r')
     yaml_parsed_cpaneluser = yaml.safe_load(cpaneluser_data_stream)
     
-    # Check & make mutex
-    mutex_dir = installation_path+"/lock/"+cpaneluser+".mutex";
-    if os.path.isdir(mutex_dir):
-        print "Can't run generate_config due mutex exists"
-        sys.exit(0)
-    os.mkdir(mutex_dir)
-    
     main_domain = yaml_parsed_cpaneluser.get('main_domain')
     #parked_domains = yaml_parsed_cpaneluser.get('parked_domains')   #This data is irrelevant as parked domain list is in ServerAlias
     #addon_domains = yaml_parsed_cpaneluser.get('addon_domains')     #This data is irrelevant as addon is mapped to a subdomain
@@ -367,9 +360,17 @@ if __name__ == "__main__":
         # If cpanel users file is not present silently exit
         sys.exit(0)
     
+    # Check & make mutex
+    mutex_dir = installation_path+"/lock/"+cpaneluser+".mutex";
+    if os.path.isdir(mutex_dir):
+        print "Can't run generate_config due mutex exists"
+        sys.exit(0)
+    os.mkdir(mutex_dir)
+    
     nginx_confgen(is_suspended, cpaneluser, main_domain)  #Generate conf for main domain
     
     for domain_in_subdomains in sub_domains:
         nginx_confgen(is_suspended, cpaneluser, domain_in_subdomains)  #Generate conf for sub domains which takes care of addon as well
     
+    # Remove mutex
     os.rmdir(mutex_dir)
