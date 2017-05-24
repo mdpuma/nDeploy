@@ -155,6 +155,9 @@ def nginx_confgen(is_suspended, user_name, domain_name):
     
     # Get all Data from cPanel userdata files
     cpdomainyaml = "/var/cpanel/userdata/" + user_name + "/" + domain_name
+    if not os.path.isfile(cpdomainyaml):
+        print "Not exists userdata file "+cpdomainyaml
+        return
     cpaneldomain_data_stream = open(cpdomainyaml, 'r')
     yaml_parsed_cpaneldomain = yaml.safe_load(cpaneldomain_data_stream)
     cpanel_ipv4 = yaml_parsed_cpaneldomain.get('ip')
@@ -189,8 +192,8 @@ def nginx_confgen(is_suspended, user_name, domain_name):
     sslcertificatekeyfile = None
     sslcacertificatefile = None
     sslcombinedcert = None
-    if os.path.isfile("/var/cpanel/userdata/" + user_name + "/" + domain_name + "_SSL"):
-        cpdomainyaml_ssl = "/var/cpanel/userdata/" + user_name + "/" + domain_name + "_SSL"
+    cpdomainyaml_ssl = "/var/cpanel/userdata/" + user_name + "/" + domain_name + "_SSL"
+    if os.path.isfile(cpdomainyaml_ssl):
         cpaneldomain_ssl_data_stream = open(cpdomainyaml_ssl, 'r')
         yaml_parsed_cpaneldomain_ssl = yaml.safe_load(cpaneldomain_ssl_data_stream)
         sslcertificatefile = yaml_parsed_cpaneldomain_ssl.get('sslcertificatefile')
@@ -206,7 +209,7 @@ def nginx_confgen(is_suspended, user_name, domain_name):
                         with codecs.open(fname, 'r', 'utf-8') as infile:
                             outfile.write(infile.read()+"\n")
             else:
-                times=10
+                times=5
                 while times>0:
                     print "Some of ssl certificate files is not exists, try again.."
                     if sslcacertificatefile and os.path.isfile(sslcertificatefile) == True and os.path.isfile(sslcertificatekeyfile) == True and os.path.isfile(sslcacertificatefile) == True:
