@@ -8,13 +8,25 @@
 
 VERSION=5.6.30
 NAME="php-$VERSION"
-EXTENSIONS="opcache imagick uploadprogress memcached mssql pdo_dblib redis sqlite3"
+EXTENSIONS="opcache imagick uploadprogress mssql pdo_dblib sqlite3"
+# memcached redis
 
 source ~/.phpbrew/bashrc
 export PHPBREW_ROOT="/usr/local/phpbrew"
+WORKDIR=`pwd`
 
-# first, apply patch and autoconf
-php -n -d memory_limit=512M /usr/bin/phpbrew install --patch fpm-lve-php5.4_fixed.patch --no-install --no-configure $VERSION
+# first just download
+php -n -d memory_limit=512M /usr/bin/phpbrew $DEBUG install --no-install --no-configure --no-clean $VERSION
+
+# patch
+function apply_patch() {
+        cp -v fpm-lve-php5.4_fixed.patch $1
+        cd $1
+        patch -p1 < fpm-lve-php5.4_fixed.patch
+        cd -
+}
+
+apply_patch $PHPBREW_ROOT/build/php-$VERSION
 
 # compile & install
 php -n -d memory_limit=512M /usr/bin/phpbrew install --jobs 12 --name $NAME $VERSION +default +fpm +mysql +exif +ftp +gd +intl +soap +pdo +curl +gmp +imap +iconv +sqlite +gettext -- --with-libdir=lib64 --with-gd=shared --enable-gd-natf --with-jpeg-dir=/usr --with-png-dir=/usr
@@ -32,10 +44,17 @@ for i in $EXTENSIONS; do
     opcache)
       [ $VERSION == "5.4.45" ] && i=zendopcache
       phpbrew ext install $i
-      sed -i '/extension/s/zendopcache/opcache/' /usr/local/phpbrew/php/$PHPBREW_PHP/var/db/zendopcache.ini
+      sed -i '/extension/s/zendopcache/opcache/' /usr/local/phpbrew/php/$PHPBREW_PHP/var/db/$i.ini
       ;;
     memcached)
-      phpbrew ext install github:php-memcached-dev/php-memcached php7 -- --disable-memcached-sasl
+      case $VERSION in
+          7.*)
+              phpbrew ext install github:php-memcached-dev/php-memcached php7 -- --disable-memcached-sasl
+              ;;
+          *)
+              phpbrew ext install $i
+              ;;
+      esac
       ;;
     mssql)
       phpbrew ext install mssql -- --with-libdir=lib64
@@ -58,6 +77,6 @@ echo extension=gd.so > /usr/local/phpbrew/php/$PHPBREW_PHP/var/db/gd.ini
 
 # update php.ini
 mv /usr/local/phpbrew/php/$PHPBREW_PHP/etc/php.ini /usr/local/phpbrew/php/$PHPBREW_PHP/etc/php.ini.bak
-cp php.ini.include /usr/local/phpbrew/php/$PHPBREW_PHP/etc/php.ini
+cp $WORKDIR/php.ini.include /usr/local/phpbrew/php/$PHPBREW_PHP/etc/php.ini
 
 /opt/nDeploy/scripts/update_backend.py PHP $PHPBREW_PHP /usr/local/phpbrew/php/$PHPBREW_PHP
