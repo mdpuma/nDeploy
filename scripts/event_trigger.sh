@@ -16,6 +16,9 @@ echo $1 | grep -E "\.main\.|\.lock|\.db|\.cache|cache\.?|sed[a-zA-Z0-9]+" && exi
 # ignore event when directory is removed
 echo $3 |grep -E "IN_DELETE\|IN_ISDIR" && exit 0
 
+# ignore event when file is removed
+echo $3 |grep -E "IN_DELETE" && exit 0
+
 echo "[`date`][pid $$] Called script $0 $*" >> /opt/nDeploy/logs/hook.log
 
 

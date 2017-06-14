@@ -3,5 +3,7 @@
   <FilesMatch \.php$>
     SetHandler "proxy:unix:/opt/fpmsockets/[% vhost.user %].sock|fcgi://localhost" 
   </FilesMatch>
+  <Proxy "fcgi://localhost" connectiontimeout=10>
+  </Proxy>
 </IfModule>
 #nDeploy#

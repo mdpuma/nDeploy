@@ -8,9 +8,7 @@ PIDFile={PHPPATH}/var/run/php-fpm.pid
 ExecStartPre={PHPPATH}/sbin/php-fpm --test --fpm-config /opt/nDeploy/conf/php-fpm.conf
 ExecStart={PHPPATH}/sbin/php-fpm --nodaemonize --fpm-config /opt/nDeploy/conf/php-fpm.conf
 ExecReload=/bin/kill -USR2 $MAINPID
-Restart=always
-RestartSec=2
-TimeoutSec=5
+Restart=no
 
 [Install]
 WantedBy=multi-user.target
