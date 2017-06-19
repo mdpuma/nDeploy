@@ -1,7 +1,7 @@
 #proxy pass to a backend webserver listening on port 8000
 
 root {{ DOCUMENTROOT }};
-{% if TESTCOOKIE == 'enabled' %}include /etc/nginx/testcookie/testcookie_aes_locations.conf;{% endif %}
+include /etc/nginx/testcookie/testcookie_aes_locations.conf;
 
 location = /wp-login.php {
 	testcookie on;
