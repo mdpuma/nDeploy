@@ -41,7 +41,7 @@ echo -e '\e[93m Adding cpanel hooks \e[0m'
 
 /usr/local/cpanel/bin/manage_hooks delete script /opt/nDeploy/scripts/cpanel_removesubdom_functions_hook_post.py --category Cpanel --event Api2::SubDomain::delsubdomain --stage post --manual --exectype script --escalateprivs
 /usr/local/cpanel/bin/manage_hooks delete script /opt/nDeploy/scripts/cpanel_removeaddon_functions_hook_post.py --category Cpanel --event Api2::AddonDomain::deladdondomain --stage post --manual --exectype script --escalateprivs
-/usr/local/cpanel/bin/manage_hooks delete script /opt/nDeploy/scripts/reload_watcher.sh --category System --event upcp --stage post --manual
+#/usr/local/cpanel/bin/manage_hooks delete script /opt/nDeploy/scripts/reload_watcher.sh --category System --event upcp --stage post --manual
 /usr/local/cpanel/bin/manage_hooks delete script /opt/nDeploy/scripts/cpanel_suspension_functions_hook_post.py --category Whostmgr --event Accounts::suspendacct --stage post --manual
 /usr/local/cpanel/bin/manage_hooks delete script /opt/nDeploy/scripts/cpanel_suspension_functions_hook_post.py --category Whostmgr --event Accounts::unsuspendacct --stage post --manual
 /usr/local/cpanel/bin/manage_hooks delete script /opt/nDeploy/scripts/convertaddon_hook_pre.py --category ConvertAddon --event convert_addon --stage pre --manual
@@ -70,7 +70,7 @@ echo -e '\e[93m Adding cpanel hooks \e[0m'
 
 /usr/local/cpanel/bin/manage_hooks add script /opt/nDeploy/scripts/cpanel_removesubdom_functions_hook_post.py --category Cpanel --event Api2::SubDomain::delsubdomain --stage post --manual --exectype script --escalateprivs
 /usr/local/cpanel/bin/manage_hooks add script /opt/nDeploy/scripts/cpanel_removeaddon_functions_hook_post.py --category Cpanel --event Api2::AddonDomain::deladdondomain --stage post --manual --exectype script --escalateprivs
-/usr/local/cpanel/bin/manage_hooks add script /opt/nDeploy/scripts/reload_watcher.sh --category System --event upcp --stage post --manual
+#/usr/local/cpanel/bin/manage_hooks add script /opt/nDeploy/scripts/reload_watcher.sh --category System --event upcp --stage post --manual
 /usr/local/cpanel/bin/manage_hooks add script /opt/nDeploy/scripts/cpanel_suspension_functions_hook_post.py --category Whostmgr --event Accounts::suspendacct --stage post --manual
 /usr/local/cpanel/bin/manage_hooks add script /opt/nDeploy/scripts/cpanel_suspension_functions_hook_post.py --category Whostmgr --event Accounts::unsuspendacct --stage post --manual
 /usr/local/cpanel/bin/manage_hooks add script /opt/nDeploy/scripts/convertaddon_hook_pre.py --category ConvertAddon --event convert_addon --stage pre --manual

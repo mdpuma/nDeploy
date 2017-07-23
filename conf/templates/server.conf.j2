@@ -1,5 +1,6 @@
 server {
 	listen {{ CPANELIP }}:80;
+	{% if IPVSIX %}listen [{{ CPIPVSIX }}]:80;{% endif %}
 	# CPIPVSIX:80;
 	
 	server_name {{ DOMAINLIST }};
@@ -18,6 +19,7 @@ server {
 {% if SSL == 'enabled' %}
 server {
 	listen {{ CPANELIP }}:443 ssl{% if HTTP2 == 'enabled' %} http2{% endif %};
+	{% if IPVSIX %}listen [{{ CPIPVSIX }}]:443 ssl{% if HTTP2 == 'enabled' %} http2{% endif %};{% endif %}
 	#CPIPVSIX:443;
 	
 	server_name {{ DOMAINLIST }};
