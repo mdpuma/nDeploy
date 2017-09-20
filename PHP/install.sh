@@ -8,6 +8,7 @@
 
 VERSION=5.6.30
 NAME="php-$VERSION"
+PHP_ARGS="-d memory_limit=512M"
 EXTENSIONS="opcache imagick uploadprogress mssql pdo_dblib sqlite3"
 # memcached redis
 
@@ -16,20 +17,21 @@ export PHPBREW_ROOT="/usr/local/phpbrew"
 WORKDIR=`pwd`
 
 # first just download
-php -n -d memory_limit=512M /usr/bin/phpbrew $DEBUG install --no-install --no-configure --no-clean $VERSION
+php $PHP_ARGS /usr/bin/phpbrew $DEBUG install --no-install --no-configure --no-clean --dryrun $VERSION
 
 # patch
 function apply_patch() {
-        cp -v fpm-lve-php5.4_fixed.patch $1
+        cp -v php-fpm.5.4.dl.v2.patch $1
         cd $1
-        patch -p1 < fpm-lve-php5.4_fixed.patch
+        patch -p1 < php-fpm.5.4.dl.v2.patch
+        autoconf-2.13
         cd -
 }
 
 apply_patch $PHPBREW_ROOT/build/php-$VERSION
 
 # compile & install
-php -n -d memory_limit=512M /usr/bin/phpbrew install --jobs 12 --name $NAME $VERSION +default +fpm +mysql +exif +ftp +gd +intl +soap +pdo +curl +gmp +imap +iconv +sqlite +gettext -- --with-libdir=lib64 --with-gd=shared --enable-gd-natf --with-jpeg-dir=/usr --with-png-dir=/usr
+php $PHP_ARGS /usr/bin/phpbrew install --jobs 12 --name $NAME $VERSION +default +fpm +mysql +exif +ftp +gd +intl +soap +pdo +curl +gmp +imap +iconv +sqlite +gettext -- --with-libdir=lib64 --with-gd=shared --enable-gd-natf --with-jpeg-dir=/usr --with-png-dir=/usr
 
 # switch
 source ~/.phpbrew/bashrc
@@ -43,6 +45,7 @@ for i in $EXTENSIONS; do
   case $i in
     opcache)
       [ $VERSION == "5.4.45" ] && i=zendopcache
+      [ $VERSION == "5.3.29" ] && i=zendopcache
       phpbrew ext install $i
       sed -i '/extension/s/zendopcache/opcache/' /usr/local/phpbrew/php/$PHPBREW_PHP/var/db/$i.ini
       ;;
