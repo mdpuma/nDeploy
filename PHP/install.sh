@@ -1,34 +1,45 @@
 #!/bin/bash -e
-# 7.1.3
-# 7.0.17
-# 5.6.30
-# 5.5.38
-# 5.4.45
+# 
+# phpbrew known
+# Read local release list (last update: 2017-09-23 04:52:55 UTC).
+# You can run `phpbrew update` or `phpbrew known --update` to get a newer release list.
+# 7.1: 7.1.9, 7.1.8, 7.1.7, 7.1.6, 7.1.5, 7.1.4, 7.1.3, 7.1.2 ...
+# 7.0: 7.0.23, 7.0.22, 7.0.21, 7.0.20, 7.0.19, 7.0.18, 7.0.17, 7.0.16 ...
+# 5.6: 5.6.31, 5.6.30, 5.6.29, 5.6.28, 5.6.27, 5.6.26, 5.6.25, 5.6.24 ...
+# 5.5: 5.5.38, 5.5.37, 5.5.36, 5.5.35, 5.5.34, 5.5.33, 5.5.32, 5.5.31 ...
+# 5.4: 5.4.45, 5.4.44, 5.4.43, 5.4.42, 5.4.41, 5.4.40, 5.4.39, 5.4.38 ...
 
 
-VERSION=5.6.30
+
+VERSION=5.6.31
 NAME="php-$VERSION"
 PHP_ARGS="-d memory_limit=512M"
+
+# Additional extensions: memcache memcached redis
 EXTENSIONS="opcache imagick uploadprogress mssql pdo_dblib sqlite3"
-# memcached redis
+
+PATCH_CLOUDLINUX=0
 
 source ~/.phpbrew/bashrc
 export PHPBREW_ROOT="/usr/local/phpbrew"
 WORKDIR=`pwd`
 
-# first just download
-php $PHP_ARGS /usr/bin/phpbrew $DEBUG install --no-install --no-configure --no-clean --dryrun $VERSION
-
 # patch
 function apply_patch() {
-        cp -v php-fpm.5.4.dl.v2.patch $1
-        cd $1
-        patch -p1 < php-fpm.5.4.dl.v2.patch
-        autoconf-2.13
-        cd -
+    cp -v php-fpm.5.4.dl.v2.patch $1
+    cd $1
+    patch -p1 < php-fpm.5.4.dl.v2.patch
+    autoconf-2.13
+    cd -
 }
 
-apply_patch $PHPBREW_ROOT/build/php-$VERSION
+if [ $PATCH_CLOUDLINUX -eq 1 ]; then
+    # first just download
+    php $PHP_ARGS /usr/bin/phpbrew $DEBUG install --no-install --no-configure --no-clean --dryrun $VERSION
+
+    # apply patch
+    apply_patch $PHPBREW_ROOT/build/php-$VERSION
+fi
 
 # compile & install
 php $PHP_ARGS /usr/bin/phpbrew install --jobs 12 --name $NAME $VERSION +default +fpm +mysql +exif +ftp +gd +intl +soap +pdo +curl +gmp +imap +iconv +sqlite +gettext -- --with-libdir=lib64 --with-gd=shared --enable-gd-natf --with-jpeg-dir=/usr --with-png-dir=/usr

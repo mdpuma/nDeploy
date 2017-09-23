@@ -1,8 +1,8 @@
 #!/usr/bin/env php
 <?php
 
-$apache_status_url = 'http://127.0.0.1:808/apache-status';
-$max_processes = 50;
+$apache_status_url = 'http://127.0.0.1:8000/whm-server-status';
+$max_processes = 150;
 
 ini_set('display_errors', 'On');
 error_reporting(E_ALL);

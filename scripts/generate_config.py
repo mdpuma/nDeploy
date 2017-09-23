@@ -293,8 +293,8 @@ def nginx_confgen(is_suspended, user_name, domain_name):
         confout.write(generated_config)
         
     # Generate the rest of the config(domain.include) based on the application template
-    if os.path.isfile(installation_path + "/conf/custom/" + domain_sname):
-        shutil.copyfile(installation_path + "/conf/custom/" + domain_sname, nginx_dir + "/sites-enabled/" + domain_sname + ".include")
+    if os.path.isfile(installation_path + "/conf/custom/" + domain_sname + ".include"):
+        shutil.copyfile(installation_path + "/conf/custom/" + domain_sname + ".include", nginx_dir + "/sites-enabled/" + domain_sname + ".include")
     else:
         app_template = templateEnv.get_template(apptemplate_code)
         # We configure the backends first if necessary

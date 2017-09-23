@@ -6,8 +6,6 @@ server {
 	
 	ssl_certificate {{ CPSRVDSSL }};
 	ssl_certificate_key {{ CPSRVDSSL }};
-	ssl_session_cache shared:SSL:10m;
-	ssl_session_timeout  5m;
 	
 	location / {
 		proxy_pass   http://{{ MAINIP }}:8000;
