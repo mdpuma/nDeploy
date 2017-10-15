@@ -31,8 +31,17 @@ function restart_watcher() {
 }
 // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 function check_nginx($status_url) {
-    $status = curl_simple($status_url);
-    $status = str_replace("\n", '', $status);
+    $tries=3;
+    while($tries>=0) {
+        $status = curl_simple($status_url);
+        $status = str_replace("\n", '', $status);
+        print_stdout("nginx_status=$status");
+        if($status != '') {
+            break;
+        }
+        print_stderr("status is '', checking again");
+        $tries--;
+    }
     print_stdout("nginx_status=$status");
     if(!preg_match("/Active connections:/", $status)) {
         return restart_nginx();
@@ -41,8 +50,8 @@ function check_nginx($status_url) {
 }
 function restart_nginx() {
     print_stderr("Try to restart nginx");
-    $tries=4;
-    while($tries>0) {
+    $tries=3;
+    while($tries>=0) {
         if(is_dir("/etc/systemd")) {
             system("systemctl restart nginx", $ret);
         } else {

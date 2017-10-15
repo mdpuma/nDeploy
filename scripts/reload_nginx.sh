@@ -9,15 +9,15 @@ if [ -n "$LAST_RELOAD" ] && [ $((LAST_RELOAD + 30)) -gt "`date +%s`" ]; then
 	exit 0
 fi
 
-echo "[`date`][pid $$] Called script $0 $*" >> /opt/nDeploy/logs/hook.log
-echo "[`date`][pid $$] USER: `id` $0 $*" >> /opt/nDeploy/logs/hook.log
+echo "[`date`][pid $$] Called script $0 $*" >> /opt/nDeploy/logs/nginx.log
+echo "[`date`][pid $$] USER: `id` $0 $*" >> /opt/nDeploy/logs/nginx.log
 
 NGINX_RESULT="`/usr/sbin/nginx -t 2>&1`"
 RESULT=$?
-echo "[`date`][pid $$] Run nginx -t: $NGINX_RESULT $0 $*" >> /opt/nDeploy/logs/hook.log
+echo "[`date`][pid $$] Run nginx -t: $NGINX_RESULT $0 $*" >> /opt/nDeploy/logs/nginx.log
 
 if [ $RESULT -ne 0 ]; then
-	echo "[`date`][pid $$] Cant reload nginx $0 $*" >> /opt/nDeploy/logs/hook.log
+	echo "[`date`][pid $$] Cant reload nginx $0 $*" >> /opt/nDeploy/logs/nginx.log
 	exit 1
 fi
 

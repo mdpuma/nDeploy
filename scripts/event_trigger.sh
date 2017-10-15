@@ -28,7 +28,7 @@ case "$2" in
 			CPANELUSER=$(echo $1|awk -F'/' '{print $5}')
 			echo "$(date) Conf:Gen ${CPANELUSER}"
 			/opt/nDeploy/scripts/generate_config.py $CPANELUSER
-			/opt/nDeploy/scripts/restart_nginx.sh
+			/opt/nDeploy/scripts/reload_nginx.sh
 			echo "[`date`][pid $$] Run generate_config restart_nginx part" >> /opt/nDeploy/logs/hook.log
 		fi
 		exit 0

@@ -38,7 +38,7 @@ if status == 1:
     silentremove(installation_path+"/domain-data/"+conf_sub_domain)
     silentremove(nginx_dir+conf_sub_domain+".conf")
     silentremove(nginx_dir+conf_sub_domain+".include")
-    subprocess.Popen("/usr/sbin/nginx -s reload", shell=True)
+    subprocess.Popen("/opt/nDeploy/scripts/reload_nginx.sh", shell=True)
     print(("1 nDeploy:cPaneltrigger:RemoveAddon:"+conf_sub_domain))
 else:
     print(("0 nDeploy:cPaneltrigger:SkipHook"))

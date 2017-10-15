@@ -40,7 +40,7 @@ if conversionstatus == 1:
     silentremove(nginx_dir+addonconfigdom+".conf")
     silentremove(nginx_dir+addonconfigdom+".include")
     silentremove(nginx_dir+addonconfigdom+".nxapi.wl")
-    subprocess.Popen("/usr/sbin/nginx -s reload", shell=True)
+    subprocess.Popen("/opt/nDeploy/scripts/reload_nginx.sh", shell=True)
     silentremove(installation_path+"/lock/"+theaddon)
     print(("1 nDeploy:cPaneltrigger:ConvertAddon:"+addonconfigdom))
 else:

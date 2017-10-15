@@ -23,7 +23,6 @@ __email__ = "anoop.alias@piserve.com"
 
 
 installation_path = "/opt/nDeploy"  # Absolute Installation Path
-nginx_bin = "/usr/sbin/nginx"
 nginx_dir = "/etc/nginx/"
 
 # Function defs
@@ -116,7 +115,7 @@ def update_config_test_status(profile_yaml, value):
 
 def nginx_server_reload():
     """Function to reload nginX config"""
-    subprocess.call(nginx_bin + " -s reload", shell=True)
+    subprocess.call("/opt/nDeploy/scripts/reload_nginx.sh", shell=True)
     return
 
 
