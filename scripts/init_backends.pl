@@ -87,6 +87,26 @@ sub reload{
 	}
 }
 
+sub reloadlogs{
+    my $ver = shift @_;
+    my $path = shift @_;
+    my $php_pidfile = $path.'/var/run/php-fpm.pid';
+    
+    my $pid;
+    open(FH, "<$php_pidfile") or return;
+    while(<FH>) {$pid .= $_;}
+    close(FH);
+    $pid = int($pid);
+    
+    if($pid <= 1) {print "Cant reload $ver (pid=$pid)\n";}
+    kill(USR1, $pid);
+    if($? eq 0) {
+        print "Reload successful $ver (pid=$pid)\n";
+    } else {
+        print "Cant reload $ver (exitcode=$?, pid=$pid)\n";
+    }
+}
+
 my ($action, $help, $php_ver);
 our $forced;
 $php_ver='';
@@ -101,7 +121,7 @@ GetOptions (
 our $backends = YAML::Tiny->read($backend_config_file);
 
 unless($action && !$help) {
-	print "Usage $0 --action=<start/stop/restart/reload> [--php=<phpver>] [--forced]\n";
+	print "Usage $0 --action=<start/stop/restart/reload/reloadlogs> [--php=<phpver>] [--forced]\n";
 	exit 1;
 }
 
@@ -123,7 +143,9 @@ if(!$is_systemd) {
 			&start($ver, $php{$ver});
 		} elsif($action eq "reload") {
 			&reload($ver, $php{$ver});
-		}
+		} elsif($action eq "reloadlogs") {
+            &reloadlogs($ver, $php{$ver});
+        }
 	}
 } else {
 	for my $ver (keys %php) {
@@ -138,6 +160,8 @@ if(!$is_systemd) {
 			system("systemctl restart $ver");
 		} elsif($action eq "reload") {
 			system("systemctl reload $ver");
+		} elsif($action eq "reloadlogs") {
+            &reloadlogs($ver, $php{$ver});
 		}
 		system("systemctl status $ver | head -7");
 	}
