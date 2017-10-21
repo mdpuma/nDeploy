@@ -48,9 +48,8 @@ case "$2" in
 		else
 			(
 				flock -x -w 300 500
-				echo "[`date`][pid $$] Run apache_php_config_generator init_backends part" >> /opt/nDeploy/logs/hook.log
-				/opt/nDeploy/scripts/apache_php_config_generator.py $CPANELUSER
-				/opt/nDeploy/scripts/init_backends.pl --action=reload
+				echo "[`date`][pid $$] Run apache_php_config_generator part" >> /opt/nDeploy/logs/hook.log
+				/opt/nDeploy/scripts/apache_php_config_generator.py --reload=1 $CPANELUSER
 			) 500>/opt/nDeploy/lock/$CPANELUSER.aplock
 			rm -f /opt/nDeploy/lock/$CPANELUSER.aplock
 		fi

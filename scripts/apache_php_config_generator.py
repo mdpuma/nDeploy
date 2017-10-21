@@ -16,6 +16,22 @@ __email__ = "anoop.alias@piserve.com"
 
 
 installation_path = "/opt/nDeploy"
+backend_config_file = installation_path + "/conf/backends.yaml"
+
+# Function defs
+def remove_php_fpm_pool(user_name):
+    """Remove the php-fpm pools of deleted accounts"""
+    backend_data_yaml = open(backend_config_file, 'r')
+    backend_data_yaml_parsed = yaml.safe_load(backend_data_yaml)
+    backend_data_yaml.close()
+    if "PHP" in backend_data_yaml_parsed:
+        php_backends_dict = backend_data_yaml_parsed["PHP"]
+        for php_path in list(php_backends_dict.values()):
+            phppool_file = php_path + "/etc/php-fpm.d/" + user_name + ".conf"
+            if os.path.islink(phppool_file):
+                os.remove(phppool_file)
+    os.remove("/opt/fpmsockets/"+user_name+".sock")
+    return
 
 def configure(username, reload):
     cpuserdatadir = "/var/cpanel/userdata/" + username
@@ -30,7 +46,6 @@ def configure(username, reload):
             yaml_parsed_userdata = yaml.safe_load(userdatayaml_data_stream)
             userdatayaml_data_stream.close()
             myversion = yaml_parsed_userdata.get('PHP')
-            backend_config_file = installation_path + "/conf/backends.yaml"
             backend_data_yaml = open(backend_config_file, 'r')
             backend_data_yaml_parsed = yaml.safe_load(backend_data_yaml)
             backend_data_yaml.close()
@@ -41,15 +56,14 @@ def configure(username, reload):
                     print("No such php version available")
                     sys.exit(1)
                 
-                php_backend_add(username, "/home/" + username, myversion, php_path)
-                path_to_socket = php_path + "/var/run/" + username + ".sock"
-                if os.path.islink("/opt/fpmsockets/" + username + ".sock"):
-                    os.remove("/opt/fpmsockets/" + username + ".sock")
-                    
-                os.symlink(path_to_socket, "/opt/fpmsockets/" + username + ".sock")
-                if reload is not True:
-                    php_backend_reload(myversion)
+                # remove php-fpm.d configs for following user
+                remove_php_fpm_pool(username)
                 
+                # make config and reload php-fpm
+                php_backend_add(username, "/home/" + username, myversion, php_path, reload)
+                
+                path_to_socket = php_path + "/var/run/" + username + ".sock"                    
+                os.symlink(path_to_socket, "/opt/fpmsockets/" + username + ".sock")
             else:
                 print("ERROR:: PHP Backends missing")
         else:
@@ -63,6 +77,6 @@ def configure(username, reload):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Set PHP-FPM socket for cpanel user to be used with Apache HTTPD")
     parser.add_argument("CPANELUSER")
-    parser.add_argument('-r', '--reload', default=False)
+    parser.add_argument('-r', '--reload', default=0)
     args = parser.parse_args()
     configure(args.CPANELUSER, args.reload)

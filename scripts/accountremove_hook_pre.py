@@ -24,7 +24,7 @@ nginx_dir = "/etc/nginx"
 def remove_file(fn):
     if os.path.isfile(fn):
         os.remove(fn)
-        print('Removing file '+fn)
+        #print('Removing file '+fn)
     else:
         print('Cant remove file '+fn)
     return
@@ -41,7 +41,7 @@ def remove_php_fpm_pool(user_name):
             phppool_link = php_path + '/etc/php-fpm.d/' + user_name + '.conf'
             phppool_file = '/opt/nDeploy/conf/php-fpm.d/' + user_name + '.conf'
             if os.path.islink(phppool_link):
-                print('Removing link '+phppool_link)
+                #print('Removing link '+phppool_link)
                 os.remove(phppool_link)
             remove_file(phppool_file)
     phppool_socket_link = '/opt/fpmsockets/' + user_name + '.sock'
@@ -79,6 +79,6 @@ for domain_in_subdomains in sub_domains:
     if os.path.isfile("/var/cpanel/userdata/" + cpaneluser + "/" + domain_in_subdomains_orig + "_SSL"):
         remove_file(nginx_dir+"/ssl/"+domain_in_subdomains+".crt")
 remove_php_fpm_pool(cpaneluser)
-subprocess.call("/opt/nDeploy/scripts/init_backends.pl --action=reload", shell=True)
+subprocess.call("/opt/nDeploy/scripts/init_backends.pl --action=reload >/dev/null", shell=True)
 subprocess.call("/opt/nDeploy/scripts/reload_nginx.sh >/dev/null 2>&1", shell=True)
 print(("1 nDeploy:remove:"+cpaneluser))

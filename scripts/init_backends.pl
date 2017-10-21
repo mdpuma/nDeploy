@@ -65,6 +65,13 @@ sub stop{
 	} else {
 		print "Cant $type stop $ver (exitcode=$?, pid=$pid)\n";
 	}
+	if($forced) {
+        $pidlist = `echo \$\(fuser -n file $path/sbin/php-fpm 2>/dev/null\)`;
+        my @pids = split(/ /, $pidlist);
+        foreach my $i (@pids) {
+             print "Send kill signal to ".$i."\n";
+        }
+	}
 }
 
 sub reload{

@@ -2,6 +2,8 @@
 <?php
 
 ini_set('display_errors', 'On');
+ini_set('date.timezone', 'Europe/Chisinau');
+ini_set('error_log', 'error_log');
 error_reporting(E_ALL);
 
 check_watcher();

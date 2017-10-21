@@ -24,6 +24,7 @@ __email__ = "anoop.alias@piserve.com"
 
 installation_path = "/opt/nDeploy"  # Absolute Installation Path
 nginx_dir = "/etc/nginx/"
+control_script = installation_path+"/scripts/init_backends.php"
 
 # Function defs
 
@@ -119,7 +120,7 @@ def nginx_server_reload():
     return
 
 
-def php_backend_add(user_name, domain_home, phpversion, php_path):
+def php_backend_add(user_name, domain_home, phpversion, php_path, reload=1):
     """Function to setup php-fpm pool for user and restart the master php-fpm"""
     phppool_file = installation_path + "/conf/php-fpm.d/" + user_name + ".conf"
     phppool_link = php_path + "/etc/php-fpm.d/" + user_name + ".conf"
@@ -137,12 +138,14 @@ def php_backend_add(user_name, domain_home, phpversion, php_path):
         os.remove(phppool_link)
     os.symlink(phppool_file, phppool_link)
     
-    php_backend_reload(phpversion)
+    print "Reload is"+reload
+    
+    if reload == '1':
+        php_backend_reload(phpversion)
 
 
 def php_backend_reload(phpversion):
     if not os.path.isfile(installation_path+'/lock/skip_php-fpm_reload'):
-        control_script = installation_path+"/scripts/init_backends.pl"
         subprocess.Popen([control_script, '--action=reload', '--php='+phpversion])    
 
 
