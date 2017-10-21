@@ -79,6 +79,6 @@ for domain_in_subdomains in sub_domains:
     if os.path.isfile("/var/cpanel/userdata/" + cpaneluser + "/" + domain_in_subdomains_orig + "_SSL"):
         remove_file(nginx_dir+"/ssl/"+domain_in_subdomains+".crt")
 remove_php_fpm_pool(cpaneluser)
-subprocess.call("/opt/nDeploy/scripts/init_backends.pl --action=reload >/dev/null", shell=True)
+subprocess.call("/opt/nDeploy/scripts/init_backends.php --action=reload >/dev/null", shell=True)
 subprocess.call("/opt/nDeploy/scripts/reload_nginx.sh >/dev/null 2>&1", shell=True)
 print(("1 nDeploy:remove:"+cpaneluser))

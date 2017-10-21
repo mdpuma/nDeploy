@@ -76,6 +76,7 @@ function check_phpfpm($php_versions=array()) {
         $status = curl_simple('http://127.0.0.1:808/ping'.$version);
         print_stdout("phpfpm_$version=$status");
         if($status != 'pong') {
+            print_stderr("no pong response, restarting php-".$version);
             restart_phpfpm($version);
         }
     }
@@ -88,10 +89,10 @@ function check_phpfpm($php_versions=array()) {
             $pid = trim(file_get_contents($pidfile));
             system("ps -p $pid >/dev/null 2>&1", $ret);
             if($ret != 0) {
-                print_stderr("no existent process by pidfile $pidfile");
+                print_stderr("no process with pid ".$pidfile.", restarting php-".$version);
                 restart_phpfpm($version);
             } else {
-                print_stdout("phpfpm_$version process exists");
+                print_stdout("master-process phpfpm_$version exists");
             }
         } else {
             print_stderr("no pidfile $pidfile");
@@ -101,7 +102,7 @@ function check_phpfpm($php_versions=array()) {
 }
 function restart_phpfpm($version) {
     print_stderr("Try to restart phpfpm_$version");
-    system("/opt/nDeploy/scripts/init_backends.pl --action=restart --forced --php=$version >/dev/null");
+    system("/opt/nDeploy/scripts/init_backends.php --action=restart --forced --php=$version >/dev/null");
 }
 // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 function curl_simple($url, $timeout=10, $connect_timeout=10) {

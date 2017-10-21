@@ -7,6 +7,6 @@
 	notifempty
 	sharedscripts
 	postrotate
-		/opt/nDeploy/scripts/init_backends.pl --action=reload
+		/opt/nDeploy/scripts/init_backends.php --action=reloadlogs
 	endscript
 }

@@ -17,14 +17,13 @@ sub do_something {
 	my ( $status, $msg );
 	
 	system("/opt/nDeploy/scripts/generate_config.py ".$input{'data'}{'user'});
-	system("/opt/nDeploy/scripts/apache_php_config_generator.py ".$input{'data'}{'user'});
+	system("/opt/nDeploy/scripts/apache_php_config_generator.py --reload=1 ".$input{'data'}{'user'}." >/dev/null");
 	
 	my $user_data_file = "/opt/nDeploy/user-data/".$input{'data'}{'user'};
 	my $udf_parsed = YAML::Tiny->read($user_data_file);
 	
 	my $php_ver = $udf_parsed->[0]->{'PHP'};
 	
-	system("/opt/nDeploy/scripts/init_backends.pl --action=reload --php=".$php_ver);
 	system("/opt/nDeploy/scripts/reload_nginx.sh 2>&1");
 	
 	$status = 1;

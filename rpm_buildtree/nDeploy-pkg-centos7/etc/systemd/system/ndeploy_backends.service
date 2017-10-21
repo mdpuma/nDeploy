@@ -4,9 +4,9 @@ After=network.target remote-fs.target nss-lookup.target
  
 [Service]
 Type=forking
-ExecStart=/opt/nDeploy/scripts/init_backends.pl --action=start
-ExecStop=/opt/nDeploy/scripts/init_backends.pl --action=stop
-ExecReload=/opt/nDeploy/scripts/init_backends.pl --action=reload
+ExecStart=/opt/nDeploy/scripts/init_backends.php --action=start
+ExecStop=/opt/nDeploy/scripts/init_backends.php --action=stop
+ExecReload=/opt/nDeploy/scripts/init_backends.php --action=reload
 User=root
 Group=root
 TimeoutSec=30
