@@ -57,7 +57,7 @@ function start($version, $path) {
     print "Starting $version: ";
     do {
         if(is_dir('/etc/systemd')) {
-            system('systemctl start '.$version);
+            system('systemctl start '.$version, $ret);
         } else {
             system($php_bin.' --fpm-config '.$php_fpm_config.' >/dev/null 2>&1', $ret);
         }

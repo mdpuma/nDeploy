@@ -120,7 +120,7 @@ def nginx_server_reload():
     return
 
 
-def php_backend_add(user_name, domain_home, phpversion, php_path, reload=1):
+def php_backend_add(user_name, domain_home, phpversion, php_path, reload='1'):
     """Function to setup php-fpm pool for user and restart the master php-fpm"""
     phppool_file = installation_path + "/conf/php-fpm.d/" + user_name + ".conf"
     phppool_link = php_path + "/etc/php-fpm.d/" + user_name + ".conf"
@@ -137,9 +137,7 @@ def php_backend_add(user_name, domain_home, phpversion, php_path, reload=1):
     if os.path.islink(phppool_link) == True:
         os.remove(phppool_link)
     os.symlink(phppool_file, phppool_link)
-    
-    print "Reload is"+reload
-    
+       
     if reload == '1':
         php_backend_reload(phpversion)
 
@@ -149,7 +147,7 @@ def php_backend_reload(phpversion):
         subprocess.Popen([control_script, '--action=reload', '--php='+phpversion])    
 
 
-def nginx_confgen(is_suspended, user_name, domain_name):
+def nginx_confgen(is_suspended, user_name, domain_name, reload):
     """Function that generates nginx config given a domain name"""
     # Initiate Jinja2 templateEnv
     templateLoader = jinja2.FileSystemLoader(installation_path + "/conf/templates")
@@ -308,10 +306,7 @@ def nginx_confgen(is_suspended, user_name, domain_name):
         elif backend_category == 'PHP':
             fastcgi_socket = backend_path + "/var/run/" + user_name + ".sock"
             if not os.path.isfile(fastcgi_socket):
-                if os.path.isfile(installation_path+"/conf/secure-php-enabled"):
-                    php_secure_backend_add(user_name, domain_home, backend_version)
-                else:
-                    php_backend_add(user_name, domain_home, backend_version, backend_path)
+                php_backend_add(user_name, domain_home, backend_version, backend_path, reload)
         elif backend_category == 'HHVM_NOBODY':
             fastcgi_socket = backend_path
         elif backend_category == 'HHVM':
@@ -338,6 +333,7 @@ def nginx_confgen(is_suspended, user_name, domain_name):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Regenerate nginX and app server configs for cpanel user")
     parser.add_argument("CPANELUSER")
+    parser.add_argument('-r', '--reload', default='0')
     args = parser.parse_args()
     cpaneluser = args.CPANELUSER
     
@@ -372,10 +368,10 @@ if __name__ == "__main__":
         sys.exit(0)
     os.mkdir(mutex_dir)
     
-    nginx_confgen(is_suspended, cpaneluser, main_domain)  #Generate conf for main domain
+    nginx_confgen(is_suspended, cpaneluser, main_domain, args.reload)  #Generate conf for main domain
     
     for domain_in_subdomains in sub_domains:
-        nginx_confgen(is_suspended, cpaneluser, domain_in_subdomains)  #Generate conf for sub domains which takes care of addon as well
+        nginx_confgen(is_suspended, cpaneluser, domain_in_subdomains, args.reload)  #Generate conf for sub domains which takes care of addon as well
     
     # Remove mutex
     os.rmdir(mutex_dir)

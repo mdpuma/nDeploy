@@ -30,7 +30,9 @@ def remove_php_fpm_pool(user_name):
             phppool_file = php_path + "/etc/php-fpm.d/" + user_name + ".conf"
             if os.path.islink(phppool_file):
                 os.remove(phppool_file)
-    os.remove("/opt/fpmsockets/"+user_name+".sock")
+    phppool_link = "/opt/fpmsockets/"+user_name+".sock"
+    if os.path.islink(phppool_link) == True:
+        os.remove(phppool_link)
     return
 
 def configure(username, reload):
@@ -77,6 +79,6 @@ def configure(username, reload):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Set PHP-FPM socket for cpanel user to be used with Apache HTTPD")
     parser.add_argument("CPANELUSER")
-    parser.add_argument('-r', '--reload', default=0)
+    parser.add_argument('-r', '--reload', default='0')
     args = parser.parse_args()
     configure(args.CPANELUSER, args.reload)
