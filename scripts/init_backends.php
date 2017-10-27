@@ -93,8 +93,9 @@ function stop($version, $path, $forced=0) {
         if($forced) {
             $output = exec('fuser -n file '.$path.'/sbin/php-fpm 2>/dev/null');
             if($output != '') {
-                $output2 = exec('ps -fp $('.$output.') 2>/dev/null');
-                print "Processes which will be killed forced:\n".$output2."\n";
+                exec('ps -fp '.$output.' 2>/dev/null', $output2);
+                $output2 = implode("\n", $output2);
+                print "Processes which will be killed forced:\n".$output2."\n\n";
                 exec('kill -9 '.$output);
             }
         }

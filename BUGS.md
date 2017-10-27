@@ -8,3 +8,5 @@
 [2017-10-20 23:33:28 +0300] info [xml-api] rebuild_files: working on domain (dinca.md)
 [2017-10-20 23:33:28 +0300] info [xml-api] php-fpm: rebuild_files: restart fpm services for Apache
 [2017-10-20 23:33:28 +0300] info [xml-api] php-fpm: fpm services restarted
+
+2. If custom nginx config exists, generate_config.py will not generate (:D) php-fpm.d symlink and file
