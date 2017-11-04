@@ -30,7 +30,7 @@ server {
 	
 	ssl on;
 	ssl_certificate {{ CPANELSSLCRT }};
-	ssl_certificate_key {{ CPANELSSLKEY }};
+	{% if CPANELSSLKEY %}ssl_certificate_key {{ CPANELSSLKEY }};{% endif %}
 	{% if HSTS == 'enabled' %}add_header Strict-Transport-Security "max-age=31536000" always;{% endif %}
 	
 	include /etc/nginx/sites-enabled/{{ DOMAINNAME }}.include;

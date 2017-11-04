@@ -199,34 +199,43 @@ def nginx_confgen(is_suspended, user_name, domain_name, reload):
         sslcertificatefile = yaml_parsed_cpaneldomain_ssl.get('sslcertificatefile')
         sslcertificatekeyfile = yaml_parsed_cpaneldomain_ssl.get('sslcertificatekeyfile')
         sslcacertificatefile = yaml_parsed_cpaneldomain_ssl.get('sslcacertificatefile')
-        if sslcacertificatefile:
-            if os.path.isfile(sslcertificatefile) == True and os.path.isfile(sslcertificatekeyfile) == True and os.path.isfile(sslcacertificatefile) == True:
+        if sslcertificatefile:
+            if os.path.isfile(sslcertificatefile) == True and os.path.isfile(sslcertificatekeyfile) == True:
                 hasssl = 'enabled'
                 sslcombinedcert = "/etc/nginx/ssl/" + domain_name + ".crt"
-                filenames = [sslcertificatefile, sslcacertificatefile]
+                
+                filenames = [sslcertificatefile]
+                if os.path.isfile(sslcacertificatefile) == True:
+                    filenames.append(sslcacertificatefile)
                 with codecs.open(sslcombinedcert, 'w', 'utf-8') as outfile:
                     for fname in filenames:
                         with codecs.open(fname, 'r', 'utf-8') as infile:
                             outfile.write(infile.read()+"\n")
-            else:
-                times=5
-                while times>0:
-                    print "Some of ssl certificate files is not exists, try again.."
-                    if sslcacertificatefile and os.path.isfile(sslcertificatefile) == True and os.path.isfile(sslcertificatekeyfile) == True and os.path.isfile(sslcacertificatefile) == True:
-                        hasssl = 'enabled'
-                        sslcombinedcert = "/etc/nginx/ssl/" + domain_name + ".crt"
-                        filenames = [sslcertificatefile, sslcacertificatefile]
-                        with codecs.open(sslcombinedcert, 'w', 'utf-8') as outfile:
-                            for fname in filenames:
-                                with codecs.open(fname, 'r', 'utf-8') as infile:
-                                    outfile.write(infile.read()+"\n")
-                        print "Files for ssl certificates has found"
-                        break
-                    times-=1;
-                    time.sleep(1)
+            #else:
+                #times=5
+                #while times>0:
+                    #print "Some of ssl certificate files is not exists, try again.."
+                    #if sslcacertificatefile and os.path.isfile(sslcertificatefile) == True and os.path.isfile(sslcertificatekeyfile) == True:
+                        #hasssl = 'enabled'
+                        #sslcombinedcert = "/etc/nginx/ssl/" + domain_name + ".crt"
+                        #filenames = [sslcertificatefile]
+                        #if os.path.isfile(sslcacertificatefile) == True:
+                            #filenames.append(sslcacertificatefile)
+                        #with codecs.open(sslcombinedcert, 'w', 'utf-8') as outfile:
+                            #for fname in filenames:
+                                #with codecs.open(fname, 'r', 'utf-8') as infile:
+                                    #outfile.write(infile.read()+"\n")
+                        #print "Files for ssl certificates has found"
+                        #break
+                    #times-=1;
+                    #time.sleep(1)
         else:
-            print "Can't install ssl certificate without CA chain"
-    
+            sslcertificatefile = '/var/cpanel/ssl/apache_tls/'+domain_sname+'/combined'
+            if os.path.isfile(sslcertificatefile) == True:
+                hasssl = 'enabled'
+                sslcombinedcert = sslcertificatefile
+                sslcertificatekeyfile = sslcertificatefile
+                
     # Get all data from nDeploy domain-data file
     if is_suspended:
         if os.path.isfile(installation_path + "/conf/templates/domain_data.suspended_local.yaml"):
