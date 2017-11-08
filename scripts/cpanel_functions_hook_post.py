@@ -16,6 +16,8 @@ installation_path = "/opt/nDeploy"  # Absolute Installation Path
 
 cpjson = json.load(sys.stdin)
 mydict = cpjson["data"]
+#cpaneluser = mydict["user"]
+# recent change ???
 cpaneluser = mydict["args"]["user"]
 subprocess.call("/opt/nDeploy/scripts/generate_config.py "+cpaneluser, shell=True)  # Assuming escalateprivilege is enabled
 subprocess.call("/opt/nDeploy/scripts/reload_nginx.sh", shell=True)  # Assuming escalateprivilege is enabled

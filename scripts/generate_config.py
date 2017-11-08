@@ -205,7 +205,7 @@ def nginx_confgen(is_suspended, user_name, domain_name, reload):
                 sslcombinedcert = "/etc/nginx/ssl/" + domain_name + ".crt"
                 
                 filenames = [sslcertificatefile]
-                if os.path.isfile(sslcacertificatefile) == True:
+                if sslcacertificatefile and os.path.isfile(sslcacertificatefile) == True:
                     filenames.append(sslcacertificatefile)
                 with codecs.open(sslcombinedcert, 'w', 'utf-8') as outfile:
                     for fname in filenames:
