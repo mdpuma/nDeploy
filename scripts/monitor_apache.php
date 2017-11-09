@@ -45,6 +45,9 @@ function check_apache($url, $max_processes) {
 }
 function restart_apache() {
     system("killall httpd -9 -v");
+    sleep(1);
+    // clean ipcs semaphores
+    system("for i in `ipcs -s | grep nobody | awk '{print $2}'`; do ipcrm sem $i; done");
     if(is_dir('/etc/systemd')) {
         system('systemctl restart httpd');
     } else {
