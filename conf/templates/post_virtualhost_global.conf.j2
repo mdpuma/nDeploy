@@ -1,0 +1,8 @@
+# rewrite customer ip address based on X-Forwarded-From http header
+Include "/etc/apache2/conf.d/includes/httpd_mod_remoteip.include"
+
+# increase MaxClients so apache will not stuck due multiple heavy requests
+MaxClients 1000
+
+# disable double logging due php-fpm processes. logging already happens to /home/USER/error_log file
+LogLevel proxy_fcgi:crit
