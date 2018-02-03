@@ -12,6 +12,9 @@ $installation_path = '/opt/nDeploy';
 $backend_config_file = $installation_path.'/conf/backends.yaml';
 $php_fpm_config = $installation_path.'/conf/php-fpm.conf';
 
+$max_wait_stop = 10; // wait n seconds after stop, until do force stop
+$max_wait_reload = 10; // wait n seconds after reload, until do force restart
+
 system("/sbin/sysctl -q -w net.core.somaxconn=4096");
 
 $o = getopt('', array(
@@ -32,6 +35,8 @@ else
 $php_versions = read_yaml($backend_config_file);
 // var_dump($php_versions);
 // var_dump($o);
+
+make_mutex($installation_path.'/lock/init_backends.lock');
 foreach($php_versions as $ver => $path) {
     if(!@preg_match('/'.$o['php'].'/', $ver)) continue;
     switch($o['action']) {
@@ -46,25 +51,21 @@ foreach($php_versions as $ver => $path) {
         }
     }
 }
+remove_mutex($installation_path.'/lock/init_backends.lock');
 
 // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 function start($version, $path) {
     global $php_fpm_config;
-    $php_bin = $path.'/sbin/php-fpm';
     
-    $retry=5;
     print "Starting $version: ";
-    do {
-        if(is_dir('/etc/systemd')) {
-            system('systemctl start '.$version, $ret);
-        } else {
-            system($php_bin.' --fpm-config '.$php_fpm_config.' >/dev/null 2>&1', $ret);
-        }
-        usleep(0.5*100000);
-        print ". ";
-        $retry--;
-    } while($ret != 0 && $retry > 0);
+    
+    if(is_dir('/etc/systemd')) {
+        system('systemctl start '.$version, $ret);
+    } else {
+        system($path.'/sbin/php-fpm --fpm-config '.$php_fpm_config.' >/dev/null 2>&1', $ret);
+    }
+    
     if($ret == 0) {
         print "started\n";
     } else {
@@ -73,23 +74,40 @@ function start($version, $path) {
 }
 
 function stop($version, $path, $forced=0) {
-    global $php_fpm_config;
-    $pidfile = $path.'/var/run/php-fpm.pid';
-    if(is_file($pidfile)) {
-        $master_pid = file_get_contents($pidfile);
-        $master_pid = trim($master_pid);
+    global $php_fpm_config, $max_wait_stop;
+    $master_pid = read_pidfile($path.'/var/run/php-fpm.pid');
+    if($master_pid) {
         if($forced == 0) {
             system('kill -QUIT '.$master_pid, $ret);
-            $type='Graceful';
+            $type='graceful';
         } else {
             system('kill -TERM '.$master_pid, $ret);
-            $type='Forced';
+            $type='forced';
         }
         if($ret == 0) {
-            print "$type stop successful $version (pid=$master_pid)\n";
+            print "Sent signal to $type stop $version (pid=$master_pid)\n";
+            
+            $retry = $max_wait_stop;
+            print "Waiting for $version to close: ";
+            do {
+                // do logic
+                system('kill -s 0 '.$master_pid.' 2>/dev/null', $ret);
+                if($ret!==0) { // return code is not 0, then master-process is no more existing
+                    print " exited\n";
+                    break;
+                }
+                sleep(1);
+                print ". ";
+                $retry--;
+            } while($retry > 0);
+            if($retry == 0) {
+                $forced = 1;
+            }
         } else {
             print "Cant $type stop $version (exitcode=$ret, pid=$master_pid)\n";
         }
+        
+        // do forced stop of php-fpm master process and childs
         if($forced) {
             $output = exec('fuser -n file '.$path.'/sbin/php-fpm 2>/dev/null');
             if($output != '') {
@@ -103,26 +121,43 @@ function stop($version, $path, $forced=0) {
 }
 
 function reload($version, $path) {
-    global $php_fpm_config;
-    $pidfile = $path.'/var/run/php-fpm.pid';
-    if(is_file($pidfile)) {
-        $master_pid = file_get_contents($pidfile);
-        $master_pid = trim($master_pid);
+    global $php_fpm_config, $max_wait_reload;
+    $master_pid = read_pidfile($path.'/var/run/php-fpm.pid');
+    if($master_pid) {
         system('kill -USR2 '.$master_pid, $ret);
         if($ret == 0) {
-            print "Reload successful $version (pid=$master_pid)\n";
+            print "Sent signal to reload $version (pid=$master_pid)\n";
+            
+            $retry = $max_wait_reload;
+            print "Waiting for $version to finish reloading: ";
+            do {
+                // do logic
+                system('kill -s 0 '.$master_pid.' 2>/dev/null', $ret);
+                if($ret!==0) { // return code is not 0, then master-process is no more existing
+                    print " reloaded\n";
+                    $retry=-1;
+                    break;
+                }
+                sleep(1);
+                print ". ";
+                $retry--;
+            } while($retry > 0);
+            if($retry == 0) {
+                // stop forced if reload doesn't finish in $max_wait_reload seconds
+                print "too late, do force restart\n";
+                stop($version, $path, 1);
+                start($version, $path);
+            }
         } else {
-            print "Cant $type stop $version (exitcode=$ret, pid=$master_pid)\n";
+            print "Cant $type reload $version (exitcode=$ret, pid=$master_pid)\n";
         }
     }
 }
 
 function reloadlogs($version, $path) {
     global $php_fpm_config;
-    $pidfile = $path.'/var/run/php-fpm.pid';
-    if(is_file($pidfile)) {
-        $master_pid = file_get_contents($pidfile);
-        $master_pid = trim($master_pid);
+    $master_pid = read_pidfile($path.'/var/run/php-fpm.pid');
+    if($master_pid) {
         system('kill -USR1 '.$master_pid, $ret);
         if($ret == 0) {
             print "Reload successful $version (pid=$master_pid)\n";
@@ -150,5 +185,21 @@ function read_yaml($config) {
         $result[$var1]=$var2;
     }
     return $result;
+}
+function read_pidfile($pidfile) {
+    if(!is_file($pidfile)) return false;
+    return trim(file_get_contents($pidfile));
+}
+
+function make_mutex($mutex_file) {
+    if(is_file($mutex_file)) {
+//         print "Exiting, due already running init_backends.php\n";
+        fwrite(STDERR, "Exiting, due already running init_backends.php\n");
+        die();
+    }
+    @touch($mutex_file);
+}
+function remove_mutex($mutex_file) {
+    @unlink($mutex_file);
 }
 ?>
