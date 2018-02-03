@@ -39,8 +39,14 @@ if mydict == None:
     print("1 nDeploy::skiphook::accountModify::pre")
     sys.exit(0)
 
-cpanelnewuser = mydict["newuser"]
 cpaneluser = mydict["user"]
+
+# sometimes cpanel/whm invoke this script without newuser atribute
+if mydict["newuser"] == None:
+    cpanelnewuser = cpaneluser
+elif:
+    cpanelnewuser = mydict["newuser"]
+
 maindomain = mydict["domain"]
 
 # Get details of current main-domain and sub-domain stored in cPanel datastore

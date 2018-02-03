@@ -52,8 +52,14 @@ if mydict == None:
     sys.exit(0)
 
 # Assuming someone changed the cPanel username
-cpanelnewuser = mydict["newuser"]
 cpaneluser = mydict["user"]
+
+# sometimes cpanel/whm invoke this script without newuser atribute
+if mydict["newuser"] == None:
+    cpanelnewuser = cpaneluser
+elif:
+    cpanelnewuser = mydict["newuser"]
+
 maindomain = mydict["domain"]
 # Calling the config generate script for the user
 if cpanelnewuser != cpaneluser:

@@ -64,8 +64,11 @@ def configure(username, reload):
                 # make config and reload php-fpm
                 php_backend_add(username, "/home/" + username, myversion, php_path, reload)
                 
-                path_to_socket = php_path + "/var/run/" + username + ".sock"                    
-                os.symlink(path_to_socket, "/opt/fpmsockets/" + username + ".sock")
+                path_from_socket = php_path + "/var/run/" + username + ".sock"
+                path_to_socket = "/opt/fpmsockets/" + username + ".sock"
+                if os.path.islink(path_to_socket) == True:
+                    os.remove(path_to_socket)
+                os.symlink(path_from_socket, path_to_socket)
             else:
                 print("ERROR:: PHP Backends missing")
         else:

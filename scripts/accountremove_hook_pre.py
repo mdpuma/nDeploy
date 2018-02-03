@@ -53,10 +53,16 @@ def remove_php_fpm_pool(user_name):
 cpjson = json.load(sys.stdin)
 mydict = cpjson["data"]
 cpaneluser = mydict["user"]
+
 cpuserdatayaml = "/var/cpanel/userdata/" + cpaneluser + "/main"
+if os.path.isfile(cpuserdatayaml) == False:
+    print(("1 nDeploy:remove:"+cpaneluser+" Can't run script accountremove_hook_pre.py, due missing "+cpuserdatayaml+" file"))
+    sys.exit()
+    
 cpaneluser_data_stream = open(cpuserdatayaml, 'r')
 yaml_parsed_cpaneluser = yaml.safe_load(cpaneluser_data_stream)
 cpaneluser_data_stream.close()
+
 main_domain = yaml_parsed_cpaneluser.get('main_domain')
 sub_domains = yaml_parsed_cpaneluser.get('sub_domains')
 
