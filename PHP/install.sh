@@ -35,10 +35,10 @@ function apply_patch() {
 
 if [ $PATCH_CLOUDLINUX -eq 1 ]; then
     # first just download
-    php $PHP_ARGS /usr/bin/phpbrew $DEBUG install --no-install --no-configure --no-clean --dryrun $VERSION
+    php $PHP_ARGS /usr/bin/phpbrew $DEBUG install --no-install --no-configure --no-clean --dryrun --name $NAME $VERSION
 
     # apply patch
-    apply_patch $PHPBREW_ROOT/build/php-$VERSION
+    apply_patch $PHPBREW_ROOT/build/$NAME
 fi
 
 # compile & install
