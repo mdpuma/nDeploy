@@ -2,7 +2,7 @@
 #Author: Anoop P Alias
 
 ##Vars
-NGINX_VERSION="1.11.6"
+NGINX_VERSION="1.13.8"
 NGINX_RPM_ITER="12.el6"
 #NPS_VERSION="1.9.32.6"
 #MY_RUBY_VERSION="2.2.3"

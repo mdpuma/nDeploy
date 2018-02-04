@@ -12,20 +12,20 @@ function enable {
 	/usr/local/cpanel/libexec/tailwatchd --restart
 	
 	echo -e '\e[93m Rebuilding Apache httpd backend configs and restarting daemons \e[0m'
-	if [ -f /var/cpanel/templates/apache2_4/vhost.default ]; then
-		if [ -f /var/cpanel/templates/apache2_4/vhost.local ];then
-			sed -i "s/CustomLog/#CustomLog/" /var/cpanel/templates/apache2_4/vhost.local
-		else
-			cp -p /var/cpanel/templates/apache2_4/vhost.default /var/cpanel/templates/apache2_4/vhost.local
-			sed -i "s/CustomLog/#CustomLog/" /var/cpanel/templates/apache2_4/vhost.local
-		fi
-		if [ -f /var/cpanel/templates/apache2_4/ssl_vhost.local ];then
-			sed -i "s/CustomLog/#CustomLog/" /var/cpanel/templates/apache2_4/ssl_vhost.local
-		else
-			cp -p /var/cpanel/templates/apache2_4/ssl_vhost.default /var/cpanel/templates/apache2_4/ssl_vhost.local
-			sed -i "s/CustomLog/#CustomLog/" /var/cpanel/templates/apache2_4/ssl_vhost.local
-		fi
-	fi
+# 	if [ -f /var/cpanel/templates/apache2_4/vhost.default ]; then
+# 		if [ -f /var/cpanel/templates/apache2_4/vhost.local ];then
+# 			sed -i "s/CustomLog/#CustomLog/" /var/cpanel/templates/apache2_4/vhost.local
+# 		else
+# 			cp -p /var/cpanel/templates/apache2_4/vhost.default /var/cpanel/templates/apache2_4/vhost.local
+# 			sed -i "s/CustomLog/#CustomLog/" /var/cpanel/templates/apache2_4/vhost.local
+# 		fi
+# 		if [ -f /var/cpanel/templates/apache2_4/ssl_vhost.local ];then
+# 			sed -i "s/CustomLog/#CustomLog/" /var/cpanel/templates/apache2_4/ssl_vhost.local
+# 		else
+# 			cp -p /var/cpanel/templates/apache2_4/ssl_vhost.default /var/cpanel/templates/apache2_4/ssl_vhost.local
+# 			sed -i "s/CustomLog/#CustomLog/" /var/cpanel/templates/apache2_4/ssl_vhost.local
+# 		fi
+# 	fi
 	
 	echo -n "Rebuild:"
 	for CPANELUSER in $(cat /etc/domainusers|sort -u|cut -d: -f1); do
@@ -65,14 +65,14 @@ function disable {
 	/usr/local/cpanel/whostmgr/bin/whostmgr2 --updatetweaksettings > /dev/null
 	/usr/local/cpanel/libexec/tailwatchd --restart
 	
-	if [ -f /var/cpanel/templates/apache2_2/vhost.local ]; then
-		sed -i "s/#CustomLog/CustomLog/" /var/cpanel/templates/apache2_2/vhost.local
-		sed -i "s/#CustomLog/CustomLog/" /var/cpanel/templates/apache2_2/ssl_vhost.local
-	fi
-	if [ -f /var/cpanel/templates/apache2_4/vhost.local ]; then
-		sed -i "s/#CustomLog/CustomLog/" /var/cpanel/templates/apache2_4/vhost.local
-		sed -i "s/#CustomLog/CustomLog/" /var/cpanel/templates/apache2_4/ssl_vhost.local
-	fi
+# 	if [ -f /var/cpanel/templates/apache2_2/vhost.local ]; then
+# 		sed -i "s/#CustomLog/CustomLog/" /var/cpanel/templates/apache2_2/vhost.local
+# 		sed -i "s/#CustomLog/CustomLog/" /var/cpanel/templates/apache2_2/ssl_vhost.local
+# 	fi
+# 	if [ -f /var/cpanel/templates/apache2_4/vhost.local ]; then
+# 		sed -i "s/#CustomLog/CustomLog/" /var/cpanel/templates/apache2_4/vhost.local
+# 		sed -i "s/#CustomLog/CustomLog/" /var/cpanel/templates/apache2_4/ssl_vhost.local
+# 	fi
 	
 	if [ -d /etc/apache2 ]; then
 		rm /etc/apache2/conf.d/includes/post_virtualhost_global.conf /etc/apache2/conf.d/includes/httpd_mod_remoteip.include

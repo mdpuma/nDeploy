@@ -3,20 +3,20 @@
 # phpbrew known
 # Read local release list (last update: 2017-09-23 04:52:55 UTC).
 # You can run `phpbrew update` or `phpbrew known --update` to get a newer release list.
-# 7.1: 7.1.9, 7.1.8, 7.1.7, 7.1.6, 7.1.5, 7.1.4, 7.1.3, 7.1.2 ...
-# 7.0: 7.0.23, 7.0.22, 7.0.21, 7.0.20, 7.0.19, 7.0.18, 7.0.17, 7.0.16 ...
-# 5.6: 5.6.31, 5.6.30, 5.6.29, 5.6.28, 5.6.27, 5.6.26, 5.6.25, 5.6.24 ...
-# 5.5: 5.5.38, 5.5.37, 5.5.36, 5.5.35, 5.5.34, 5.5.33, 5.5.32, 5.5.31 ...
+# 7.2: 7.2.2, 7.2.1, 7.2.0 ...
+# 7.1: 7.1.14, 7.1.13, 7.1.12, 7.1.11, 7.1.10, 7.1.9, 7.1.8, 7.1.7 ...
+# 7.0: 7.0.27, 7.0.26, 7.0.25, 7.0.24, 7.0.23, 7.0.22, 7.0.21, 7.0.20 ...
+# 5.6: 5.6.33, 5.6.32, 5.6.31, 5.6.30, 5.6.29, 5.6.28, 5.6.27, 5.6.26 ...
+# 5.5: 5.5.37, 5.5.36, 5.5.35, 5.5.34, 5.5.33, 5.5.32, 5.5.31, 5.5.30 ...
 # 5.4: 5.4.45, 5.4.44, 5.4.43, 5.4.42, 5.4.41, 5.4.40, 5.4.39, 5.4.38 ...
-
 
 
 VERSION=5.6.31
 NAME="php-$VERSION"
 PHP_ARGS="-d memory_limit=512M"
 
-# Additional extensions: memcache memcached redis
-EXTENSIONS="opcache imagick uploadprogress mssql pdo_dblib sqlite3"
+# Additional extensions: memcache memcached redis sqlite3
+EXTENSIONS="opcache imagick uploadprogress mssql pdo_dblib"
 
 PATCH_CLOUDLINUX=0
 
@@ -29,7 +29,7 @@ function apply_patch() {
     cp -v php-fpm.5.4.dl.v2.patch $1
     cd $1
     patch -p1 < php-fpm.5.4.dl.v2.patch
-    autoconf-2.13
+    autoconf
     cd -
 }
 
