@@ -25,8 +25,6 @@ def remove_file(fn):
     if os.path.isfile(fn):
         os.remove(fn)
         #print('Removing file '+fn)
-    else:
-        print('Cant remove file '+fn)
     return
 
 # Function defs

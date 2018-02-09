@@ -46,7 +46,7 @@ php $PHP_ARGS /usr/bin/phpbrew install --jobs 12 --name $NAME $VERSION +default 
 
 # switch
 source ~/.phpbrew/bashrc
-phpbrew use $VERSION
+phpbrew use $NAME
 
 # mkdir php-fpm.d
 mkdir /usr/local/phpbrew/php/$PHPBREW_PHP/etc/php-fpm.d -p

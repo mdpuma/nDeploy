@@ -57,7 +57,7 @@ cpaneluser = mydict["user"]
 # sometimes cpanel/whm invoke this script without newuser atribute
 if mydict["newuser"] == None:
     cpanelnewuser = cpaneluser
-elif:
+else:
     cpanelnewuser = mydict["newuser"]
 
 maindomain = mydict["domain"]
