@@ -6,11 +6,18 @@ ini_set('date.timezone', 'Europe/Chisinau');
 ini_set('error_log', 'error_log');
 error_reporting(E_ALL);
 
-check_apache('http://127.0.0.1:8000/whm-server-status', 150);
+check_apache('http://127.0.0.1:8000/whm-server-status', 300, 5);
 
 // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-function check_apache($url, $max_processes) {
-    $status = curl_simple($url);
+function check_apache($url, $max_processes, $attempts=3) {
+    do {
+        $status = curl_simple($url);
+        if($status==false) 
+            print_stderr("apache status is failed");
+        $attempts--;
+        usleep(500000);
+    } while($attempts>0 && $status == false);
+    
     $pidfile = '/var/run/apache2/httpd.pid';
 //     print_stdout("apache_status is '$status'");
     

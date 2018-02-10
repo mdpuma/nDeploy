@@ -7,8 +7,8 @@ ini_set('error_log', 'error_log');
 error_reporting(E_ALL);
 
 check_watcher();
-$ret = check_nginx('http://127.0.0.1:808/nginx-status');
-if($ret == 0) check_phpfpm(['5.4', '5.6', '7.0']);
+$ret = check_nginx('http://127.0.0.1:808/nginx-status', 5);
+if($ret == 0) check_phpfpm(['5.4', '5.6', '7.0'], 5);
 
 // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 function check_watcher() {
@@ -32,26 +32,21 @@ function restart_watcher() {
     }
 }
 // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-function check_nginx($status_url) {
-    $tries=3;
-    while($tries>=0) {
+function check_nginx($status_url, $attempts=5) {
+    do {
         $status = curl_simple($status_url);
-        $status = str_replace("\n", '', $status);
-        print_stdout("nginx_status=$status");
-        if($status != '') {
-            break;
-        }
-        print_stderr("status is '', checking again");
-        $tries--;
-    }
-    print_stdout("nginx_status=$status");
+        if($status==false) 
+            print_stderr("nginx status is failed");
+        $attempts--;
+    } while($attempts > 0 && $status == false);
+    $status = str_replace("\n", '', $status);
     if(!preg_match("/Active connections:/", $status)) {
         return restart_nginx();
     }
     return 0;
 }
 function restart_nginx() {
-    print_stderr("Try to restart nginx");
+    print_stderr("try to restart nginx");
     $tries=3;
     while($tries>=0) {
         if(is_dir("/etc/systemd")) {
@@ -71,9 +66,17 @@ function restart_nginx() {
     return $ret;
 }
 // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-function check_phpfpm($php_versions=array()) {
+function check_phpfpm($php_versions=array(), $attempts=5) {
     foreach($php_versions as $version) {
-        $status = curl_simple('http://127.0.0.1:808/ping'.$version);
+        $attempt = $attempts;
+        do {
+            $status = curl_simple('http://127.0.0.1:808/ping'.$version);
+            if($status==false) {
+                print_stderr("php-".$version." status is failed");
+                $attempt--;
+                usleep(500000);
+            }
+        } while($attempt > 0 && $status == false);
         print_stdout("phpfpm_$version=$status");
         if($status != 'pong') {
             print_stderr("no pong response, restarting php-".$version);
@@ -81,7 +84,7 @@ function check_phpfpm($php_versions=array()) {
         }
     }
     
-    sleep(1);
+    usleep(500000);
     $yaml_array = read_yaml('/opt/nDeploy/conf/backends.yaml');
     foreach($yaml_array as $version => $path) {
         $pidfile = $path.'/var/run/php-fpm.pid';
@@ -101,8 +104,8 @@ function check_phpfpm($php_versions=array()) {
     }
 }
 function restart_phpfpm($version) {
-    print_stderr("Try to restart phpfpm_$version");
-    system("/opt/nDeploy/scripts/init_backends.php --action=restart --forced --php=$version >/dev/null");
+    print_stderr('try to restart php-'.$version);
+    system('/opt/nDeploy/scripts/init_backends.php --action=restart --forced --php='.$version.'$ >/dev/null');
 }
 // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 function curl_simple($url, $timeout=10, $connect_timeout=10) {
