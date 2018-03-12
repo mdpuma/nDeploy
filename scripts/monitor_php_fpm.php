@@ -6,9 +6,60 @@ ini_set('date.timezone', 'Europe/Chisinau');
 ini_set('error_log', 'error_log');
 error_reporting(E_ALL);
 
+// load state from file
+$reload_state = [];
+load_state();
+
 check_watcher();
 $ret = check_nginx('http://127.0.0.1:808/nginx-status', 5);
 if($ret == 0) check_phpfpm(['5.4', '5.6', '7.0'], 5);
+
+var_dump($reload_state);
+if($reload_state) {
+	foreach($reload_state as $i => $j) {
+		if($j['failed_cron']>2) {
+			print_stderr("failed to revive php-fpm, let's kill php-fpm (probable cloudlinux bug)");
+			system("killall php-fpm -9 -v 1>&2");
+			$reload_state[$i]['failed_cron']=0;
+		}
+	}
+}
+var_dump($reload_state);
+// save state to file
+save_state();
+
+function increase_attempt($service) {
+	global $reload_state;
+	if(!isset($reload_state[$service]['restarts'])) 
+		$reload_state[$service]['restarts'] = 0;
+	$reload_state[$service]['restarts'] += 1;
+}
+function load_state($file = 'php-fpm.state') {
+	global $reload_state;
+	if(is_file($file)) {
+		$reload_state = json_decode(file_get_contents($file), true);
+	}
+	foreach($reload_state as $i => $j) {
+		$reload_state[$i]['restarts']=0;
+	}
+}
+function save_state($file = 'php-fpm.state') {
+	global $reload_state;
+	foreach($reload_state as $i => $j) {
+		
+		if(!isset($reload_state[$i]['failed_cron'])) {
+			$reload_state[$i]['failed_cron'] = 0;
+		}
+		
+		if($reload_state[$i]['restarts'] > 0) {
+			$reload_state[$i]['failed_cron']++;
+		} else {
+			if($reload_state[$i]['failed_cron']>0)
+				$reload_state[$i]['failed_cron']--;
+		}
+	}
+	file_put_contents($file, json_encode($reload_state));
+}
 
 // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 function check_watcher() {
@@ -104,6 +155,7 @@ function check_phpfpm($php_versions=array(), $attempts=5) {
     }
 }
 function restart_phpfpm($version) {
+	increase_attempt($version);
     print_stderr('try to restart php-'.$version);
     system('/opt/nDeploy/scripts/init_backends.php --action=restart --forced --php='.$version.'$ >/dev/null');
 }
