@@ -78,7 +78,6 @@ if form.getvalue('domain'):
             yaml_parsed_profileyaml['backend_version'] = myversion
             yaml_parsed_profileyaml['apptemplate_code'] = form.getvalue('pcode')
             yaml_parsed_profileyaml['redirect_to_ssl'] = form.getvalue('redirecttossl')
-            yaml_parsed_profileyaml['http2'] = form.getvalue('http2')
             yaml_parsed_profileyaml['hsts'] = form.getvalue('hsts')
             yaml_parsed_profileyaml['testcookie'] = form.getvalue('testcookie')
             with open(profileyaml, 'w') as yaml_file:

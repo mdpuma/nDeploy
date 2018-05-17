@@ -18,8 +18,8 @@ server {
 
 {% if SSL == 'enabled' %}
 server {
-	listen {{ CPANELIP }}:443 ssl{% if HTTP2 == 'enabled' %} http2{% endif %};
-	{% if IPVSIX %}listen [{{ CPIPVSIX }}]:443 ssl{% if HTTP2 == 'enabled' %} http2{% endif %};{% endif %}
+	listen {{ CPANELIP }}:443 ssl http2;
+	{% if IPVSIX %}listen [{{ CPIPVSIX }}]:443 ssl http2;{% endif %}
 	#CPIPVSIX:443;
 	
 	server_name {{ DOMAINLIST }};
@@ -32,6 +32,7 @@ server {
 	ssl_certificate {{ CPANELSSLCRT }};
 	{% if CPANELSSLKEY %}ssl_certificate_key {{ CPANELSSLKEY }};{% endif %}
 	{% if HSTS == 'enabled' %}add_header Strict-Transport-Security "max-age=31536000" always;{% endif %}
+	{% if not SSLSTAPLING %}ssl_stapling off;{% endif %}
 	
 	include /etc/nginx/sites-enabled/{{ DOMAINNAME }}.include;
 }

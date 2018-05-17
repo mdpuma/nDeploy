@@ -192,6 +192,8 @@ def nginx_confgen(is_suspended, user_name, domain_name, reload):
     sslcertificatekeyfile = None
     sslcacertificatefile = None
     sslcombinedcert = None
+    sslstapling = False
+    
     cpdomainyaml_ssl = "/var/cpanel/userdata/" + user_name + "/" + domain_name + "_SSL"
     if os.path.isfile(cpdomainyaml_ssl):
         sslcertificatefile = '/var/cpanel/ssl/apache_tls/'+domain_sname+'/combined'
@@ -199,7 +201,7 @@ def nginx_confgen(is_suspended, user_name, domain_name, reload):
             hasssl = 'enabled'
             sslcombinedcert = sslcertificatefile
             sslcertificatekeyfile = sslcertificatefile
-                
+            
     # Get all data from nDeploy domain-data file
     if is_suspended:
         if os.path.isfile(installation_path + "/conf/templates/domain_data.suspended_local.yaml"):
@@ -225,7 +227,6 @@ def nginx_confgen(is_suspended, user_name, domain_name, reload):
     apptemplate_code = yaml_parsed_domain_data.get('apptemplate_code', None)
     backend_path = yaml_parsed_domain_data.get('backend_path', None)
     backend_version = yaml_parsed_domain_data.get('backend_version', None)
-    http2 = yaml_parsed_domain_data.get('http2', None)
     hsts = yaml_parsed_domain_data.get('hsts', None)
     redirecttossl = yaml_parsed_domain_data.get('redirect_to_ssl', None)
     testcookie = yaml_parsed_domain_data.get('testcookie', None)
@@ -251,7 +252,7 @@ def nginx_confgen(is_suspended, user_name, domain_name, reload):
                     "CPANELIP": cpanel_ipv4,
                     "CPIPVSIX": ipv6_addr,
                     "IPVSIX": hasipv6,
-                    "HTTP2": http2,
+                    "SSLSTAPLING": sslstapling,
                     "HSTS": hsts,
                     "CPANELSSLCRT": sslcombinedcert,
                     "CPANELSSLKEY": sslcertificatekeyfile,

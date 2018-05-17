@@ -22,10 +22,6 @@
       <label><input type="radio" name="redirecttossl" value="enabled" {% if REDIRECTTOSSL == 'enabled' %}checked{% endif %}/> YES</label>
       <label><input type="radio" name="redirecttossl" value="disabled" {% if REDIRECTTOSSL == 'disabled' %}checked{% endif %}/> NO</label>
     <HR>
-    <p style="background-color:LightGrey">Enable HTTP/2: </p>
-      <label><input type="radio" name="http2" value="enabled" {% if HTTP2 == 'enabled' %}checked{% endif %}/> YES</label>
-      <label><input type="radio" name="http2" value="disabled" {% if HTTP2 == 'disabled' %}checked{% endif %}/> NO</label>
-    <HR>
     <p style="background-color:LightGrey">Enable HSTS (<a href="https://en.wikipedia.org/wiki/HTTP_Strict_Transport_Security">wiki</a>): </p>
       <label><input type="radio" name="hsts" value="enabled" {% if HSTS == 'enabled' %}checked{% endif %}/> YES</label>
       <label><input type="radio" name="hsts" value="disabled" {% if HSTS == 'disabled' %}checked{% endif %}/> NO</label>

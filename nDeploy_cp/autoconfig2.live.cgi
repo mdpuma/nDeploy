@@ -49,7 +49,6 @@ if form.getvalue('domain') and form.getvalue('backend'):
         backend_version = yaml_parsed_profileyaml.get('backend_version')
         apptemplate_code = yaml_parsed_profileyaml.get('apptemplate_code')
         redirecttossl = yaml_parsed_profileyaml.get('redirect_to_ssl')
-        http2 = yaml_parsed_profileyaml.get('http2')
         hsts = yaml_parsed_profileyaml.get('hsts')
         testcookie = yaml_parsed_profileyaml.get('testcookie')
         if os.path.isfile(backend_config_file) and os.path.isfile(profile_config_file):
@@ -75,7 +74,6 @@ if form.getvalue('domain') and form.getvalue('backend'):
                         "PROFILES": profile_branch_dict,
                         "BACKENDS": backends_branch_dict,
                         "REDIRECTTOSSL": redirecttossl,
-                        "HTTP2": http2,
                         "HSTS": hsts,
                         "TESTCOOKIE": testcookie,
                         }

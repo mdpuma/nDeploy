@@ -3,7 +3,7 @@
 
 ##Vars
 NGINX_VERSION="1.14.0"
-NGINX_RPM_ITER="14.el7"
+NGINX_RPM_ITER="14.el6"
 OPENSSL_VERSION="1.0.2o"
 CACHE_PURGE_VERSION="2.3"
 
@@ -11,10 +11,10 @@ CURRENT_DIR=$PWD
 
 CPU_COUNT=$(ls /sys/devices/system/cpu/cpu[0-9]* -d | wc -l)
 
-rm -f nginx-pkg-64-centos7/nginx-nDeploy*rpm
+rm -f nginx-pkg-64/nginx-nDeploy*rpm
 rm -rf nginx-${NGINX_VERSION}*
 
-rsync -a --exclude 'etc/rc.d' nginx-pkg-64-common/ nginx-pkg-64-centos7/
+rsync -a nginx-pkg-64-common/ nginx-pkg-64/
 
 yum -y install rpm-build libcurl-devel pcre-devel git GeoIP-devel
 
@@ -48,15 +48,16 @@ cd $CURRENT_DIR/nginx-${NGINX_VERSION}
 
 make DESTDIR=./tempo -j$CPU_COUNT install
 
-rsync -a tempo/usr/sbin ../nginx-pkg-64-centos7/usr/
+rsync -a tempo/usr/sbin ../nginx-pkg-64/usr/
 
-cd ../nginx-pkg-64-centos7
+cd ../nginx-pkg-64
 mkdir -p var/log/nginx
 mkdir -p var/run
 chmod 644 etc/nginx/testcookie/testcookie_html/*
 chmod 755 etc/nginx/status_html -Rv
+chmod 755 etc/rc.d/init.d/nginx
 
-fpm -s dir -t rpm -C ../nginx-pkg-64-centos7 --vendor "iphost.md" --version ${NGINX_VERSION} --iteration ${NGINX_RPM_ITER} -a $(arch) \
+fpm -s dir -t rpm -C ../nginx-pkg-64 --vendor "iphost.md" --version ${NGINX_VERSION} --iteration ${NGINX_RPM_ITER} -a $(arch) \
 	-m admin@iphost.md -e --description "nDeploy custom nginx package" --url https://innovahosting.net --conflicts nginx \
 	-d zlib -d openssl -d pcre -d libcurl --config-files /etc/nginx \
 	--after-install ../after_nginx_install --before-remove ../after_nginx_uninstall --name nginx-nDeploy .
