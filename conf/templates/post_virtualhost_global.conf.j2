@@ -6,3 +6,9 @@ MaxClients 1000
 
 # disable double logging due php-fpm processes. logging already happens to /home/USER/error_log file
 LogLevel proxy_fcgi:crit
+
+# count entry processes to php-fpm
+<IfModule mod_hostinglimits.c>
+   SkipErrors Off
+   AllowedHandlers cgi-script %php% fcgid-script application/x-miva-compiled %sock%
+</IfModule>
