@@ -1,0 +1,7 @@
+# get vhost version
+
+whmapi1 php_get_vhost_versions
+
+
+
+whmapi1 php_set_vhost_versions version=ea-php70 vhost-0=rm5.tld
