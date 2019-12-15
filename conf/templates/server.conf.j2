@@ -28,7 +28,6 @@ server {
 	access_log /usr/local/apache/domlogs/{{ DOMAINNAME }}-ssl_log main;
 	disable_symlinks if_not_owner from={{ DOCUMENTROOT }};
 	
-	ssl on;
 	ssl_certificate {{ CPANELSSLCRT }};
 	{% if CPANELSSLKEY %}ssl_certificate_key {{ CPANELSSLKEY }};{% endif %}
 	{% if HSTS == 'enabled' %}add_header Strict-Transport-Security "max-age=31536000" always;{% endif %}
