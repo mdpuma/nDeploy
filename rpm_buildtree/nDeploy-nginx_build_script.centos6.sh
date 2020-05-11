@@ -30,8 +30,8 @@ wget http://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz
 tar -xvzf nginx-${NGINX_VERSION}.tar.gz
 cd nginx-${NGINX_VERSION}/
 
-wget http://labs.frickle.com/files/ngx_cache_purge-${CACHE_PURGE_VERSION}.tar.gz
-tar -xvzf ngx_cache_purge-${CACHE_PURGE_VERSION}.tar.gz
+wget https://github.com/FRiCKLE/ngx_cache_purge/archive/master.zip -O ngx_cache_purge.zip
+unzip ngx_cache_purge.zip -d .
 
 git clone https://github.com/kyprizel/testcookie-nginx-module.git
 
@@ -47,7 +47,7 @@ cd $CURRENT_DIR/nginx-${NGINX_VERSION}
 	--http-scgi-temp-path=/var/cache/nginx/scgi_temp \
 	--user=nobody --group=nobody --with-http_ssl_module --with-http_v2_module --with-http_realip_module --with-http_gzip_static_module \
 	--with-http_stub_status_module --with-http_geoip_module --with-file-aio --with-threads \
-	--add-module=ngx_brotli --add-module=testcookie-nginx-module --add-module=ngx_cache_purge-${CACHE_PURGE_VERSION} \
+	--add-module=ngx_brotli --add-module=testcookie-nginx-module --add-module=ngx_cache_purge-master \
 	--with-openssl=$CURRENT_DIR/openssl-$OPENSSL_VERSION \
 	--with-openssl-opt=enable-tls1_3 \
 	--with-cc-opt='-O2 -g -pipe -Wp,-D_FORTIFY_SOURCE=2 -fexceptions -fstack-protector --param=ssp-buffer-size=4 -m64 -mtune=generic'
