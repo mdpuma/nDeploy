@@ -12,7 +12,7 @@ load_state();
 
 check_watcher();
 $ret = check_nginx('http://127.0.0.1:808/nginx-status', 5);
-if($ret == 0) check_phpfpm(['5.4', '5.6', '7.0'], 5);
+// if($ret == 0) check_phpfpm(['5.4', '5.6', '7.0'], 5);
 
 var_dump($reload_state);
 if($reload_state) {

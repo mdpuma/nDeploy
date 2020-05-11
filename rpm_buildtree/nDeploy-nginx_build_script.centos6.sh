@@ -2,9 +2,9 @@
 #Author: Anoop P Alias
 
 ##Vars
-NGINX_VERSION="1.14.0"
-NGINX_RPM_ITER="14.el6"
-OPENSSL_VERSION="1.0.2o"
+NGINX_VERSION="1.17.10"
+NGINX_RPM_ITER="17.10.el6"
+OPENSSL_VERSION="1.1.1"
 CACHE_PURGE_VERSION="2.3"
 
 CURRENT_DIR=$PWD
@@ -12,18 +12,23 @@ CURRENT_DIR=$PWD
 CPU_COUNT=$(ls /sys/devices/system/cpu/cpu[0-9]* -d | wc -l)
 
 rm -f nginx-pkg-64/nginx-nDeploy*rpm
-rm -rf nginx-${NGINX_VERSION}*
+rm -rf nginx-${NGINX_VERSION}* openssl-$OPENSSL_VERSION
 
 rsync -a nginx-pkg-64-common/ nginx-pkg-64/
 
 yum -y install rpm-build libcurl-devel pcre-devel git GeoIP-devel
 
+[ ! -f openssl-$OPENSSL_VERSION.tar.gz ] && wget https://www.openssl.org/source/openssl-$OPENSSL_VERSION.tar.gz
+tar -xvzf openssl-$OPENSSL_VERSION.tar.gz
+# cd openssl-$OPENSSL_VERSION
+# ./config --prefix=/usr/local/openssl-$OPENSSL_VERSION --openssldir=/usr/local/openssl-$OPENSSL_VERSION
+# make
+# make install
+
+cd $CURRENT_DIR
 wget http://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz
 tar -xvzf nginx-${NGINX_VERSION}.tar.gz
 cd nginx-${NGINX_VERSION}/
-
-wget https://www.openssl.org/source/openssl-$OPENSSL_VERSION.tar.gz
-tar -xvzf openssl-$OPENSSL_VERSION.tar.gz
 
 wget http://labs.frickle.com/files/ngx_cache_purge-${CACHE_PURGE_VERSION}.tar.gz
 tar -xvzf ngx_cache_purge-${CACHE_PURGE_VERSION}.tar.gz
@@ -43,10 +48,13 @@ cd $CURRENT_DIR/nginx-${NGINX_VERSION}
 	--user=nobody --group=nobody --with-http_ssl_module --with-http_v2_module --with-http_realip_module --with-http_gzip_static_module \
 	--with-http_stub_status_module --with-http_geoip_module --with-file-aio --with-threads \
 	--add-module=ngx_brotli --add-module=testcookie-nginx-module --add-module=ngx_cache_purge-${CACHE_PURGE_VERSION} \
-	--with-openssl=openssl-$OPENSSL_VERSION \
+	--with-openssl=$CURRENT_DIR/openssl-$OPENSSL_VERSION \
+	--with-openssl-opt=enable-tls1_3 \
 	--with-cc-opt='-O2 -g -pipe -Wp,-D_FORTIFY_SOURCE=2 -fexceptions -fstack-protector --param=ssp-buffer-size=4 -m64 -mtune=generic'
 
-make DESTDIR=./tempo -j$CPU_COUNT install
+make -j$CPU_COUNT
+
+make DESTDIR=./tempo install
 
 rsync -a tempo/usr/sbin ../nginx-pkg-64/usr/
 
@@ -54,7 +62,7 @@ cd ../nginx-pkg-64
 mkdir -p var/log/nginx
 mkdir -p var/run
 chmod 644 etc/nginx/testcookie/testcookie_html/*
-chmod 755 etc/nginx/status_html -Rv
+mkdir etc/nginx/status_html -p
 chmod 755 etc/rc.d/init.d/nginx
 
 fpm -s dir -t rpm -C ../nginx-pkg-64 --vendor "iphost.md" --version ${NGINX_VERSION} --iteration ${NGINX_RPM_ITER} -a $(arch) \

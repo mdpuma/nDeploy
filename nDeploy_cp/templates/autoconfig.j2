@@ -11,7 +11,7 @@
     {% if CUSTOMCONF == '0' %}
     <form action="autoconfig2.live.cgi" method="post">
       <select name="backend" size="5">
-      {% for key in BACKENDS %}<option value="{{ key }}">{{ key }}</option>{% endfor %}
+      {% for key in BACKENDS %}<option value="{{ key }}"{% if key == BACKEND_CATEGORY %} selected{% endif %}>{{ key }}</option>{% endfor %}
       </select>
       <HR>
       <input style="display:none" name="domain" value="{{ DOMAIN }}">
