@@ -67,3 +67,5 @@ fpm -s dir -t rpm -C ../nginx-pkg-64-centos7 --vendor "iphost.md" --version ${NG
 	-m admin@iphost.md -e --description "nDeploy custom nginx package" --url https://innovahosting.net --conflicts nginx \
 	-d zlib -d openssl -d pcre -d libcurl --config-files /etc/nginx \
 	--after-install ../after_nginx_install --before-remove ../after_nginx_uninstall --name nginx-nDeploy .
+
+mv nginx-nDeploy*.rpm ../RPMS -v
