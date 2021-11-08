@@ -76,7 +76,7 @@ function check_watcher() {
 }
 function restart_watcher() {
     print_stderr("Try to restart ndeploy_watcher");
-    if(is_dir("/etc/systemd")) {
+    if(is_file('/usr/bin/systemctl')) {
         system("systemctl restart ndeploy_watcher");
     } else {
         system("/etc/init.d/ndeploy_watcher restart");
@@ -100,7 +100,7 @@ function restart_nginx() {
     print_stderr("try to restart nginx");
     $tries=3;
     while($tries>=0) {
-        if(is_dir("/etc/systemd")) {
+        if(is_file('/usr/bin/systemctl')) {
             system("systemctl restart nginx", $ret);
         } else {
             system("/etc/init.d/nginx restart", $ret);

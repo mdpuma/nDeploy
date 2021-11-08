@@ -55,7 +55,7 @@ function restart_apache() {
     sleep(1);
     // clean ipcs semaphores
     system("for i in `ipcs -s | grep nobody | awk '{print $2}'`; do ipcrm sem \$i; done");
-    if(is_dir('/etc/systemd')) {
+    if(is_file('/usr/bin/systemctl')) {
         system('systemctl restart httpd');
     } else {
         system('/etc/init.d/httpd restart');

@@ -21,7 +21,7 @@ if [ $RESULT -ne 0 ]; then
 	exit 1
 fi
 
-if [ -d /etc/systemd ]; then
+if [ -f /usr/bin/systemctl ]; then
 	systemctl restart nginx
 else
 	/etc/init.d/nginx restart >/dev/null 2>&1
