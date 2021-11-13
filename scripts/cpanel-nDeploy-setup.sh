@@ -1,13 +1,19 @@
 #!/bin/bash -e
 
 function enable {
+	osversion=$(cat /etc/redhat-release | grep -oE '[0-9]+\.[0-9]+'|cut -d"." -f1)
+	
 	echo -e '\e[93m Generating the default nginx vhosts \e[0m'
 	/opt/nDeploy/scripts/generate_default_vhost_config.py
 	echo -e '\e[93m Modifying apache http and https port in cpanel \e[0m'
 	/usr/local/cpanel/bin/whmapi1 set_tweaksetting key=apache_port value=0.0.0.0:8000
 	/usr/local/cpanel/bin/whmapi1 set_tweaksetting key=apache_ssl_port value=0.0.0.0:4430
 	sed -i 's/service\[httpd\]=80,/service[httpd]=8000,/' /etc/chkserv.d/httpd
-	echo 'service[nginx]=80,GET / HTTP/1.0,HTTP/1..,/etc/init.d/nginx restart' > /etc/chkserv.d/nginx
+	if [ ${osversion} -le 6 ];then
+		echo 'service[nginx]=80,GET / HTTP/1.0,HTTP/1..,/etc/init.d/nginx restart' > /etc/chkserv.d/nginx
+	else
+		echo 'service[nginx]=80,GET / HTTP/1.0,HTTP/1..,systemctl restart nginx' > /etc/chkserv.d/nginx
+	fi
 	echo 'nginx:1' >> /etc/chkserv.d/chkservd.conf
 	/usr/local/cpanel/libexec/tailwatchd --restart
 	
@@ -34,7 +40,8 @@ function enable {
 	done
 	
 	/scripts/rebuildhttpdconf
-	osversion=$(cat /etc/redhat-release | grep -oE '[0-9]+\.[0-9]+'|cut -d"." -f1)
+	/scripts/restartsrv_httpd
+	
 	if [ ${osversion} -le 6 ];then
 		chkconfig nginx on
 		chkconfig ndeploy_watcher on
@@ -52,7 +59,6 @@ function enable {
 		systemctl restart ndeploy_watcher
 		systemctl restart ndeploy_backends
 	fi
-	/scripts/restartsrv_httpd
 }
 
 function disable {
@@ -61,7 +67,7 @@ function disable {
 	/usr/local/cpanel/bin/whmapi1 set_tweaksetting key=apache_ssl_port value=0.0.0.0:443
 	sed -i 's/service\[httpd\]=8000,/service[httpd]=80,/' /etc/chkserv.d/httpd
 	rm /etc/chkserv.d/nginx
-	echo 'nginx:1' >> /etc/chkserv.d/chkservd.conf
+	echo 'nginx:0' >> /etc/chkserv.d/chkservd.conf
 	/usr/local/cpanel/whostmgr/bin/whostmgr2 --updatetweaksettings > /dev/null
 	/usr/local/cpanel/libexec/tailwatchd --restart
 	

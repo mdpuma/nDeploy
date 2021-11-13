@@ -17,8 +17,9 @@ done
 #cd nDeploy-pkg
 #chmod 755 opt/nDeploy/scripts/* opt/nDeploy/apache_fpm_cp/* opt/nDeploy/nDeploy_cp/* -v
 #fpm -s dir -t rpm -C ../nDeploy-pkg --vendor "AMPLICA" --iteration ${RPM_ITERATION}.el6 -d python-inotify -d python-jinja2 -d python-simplejson -d nginx-nDeploy -d python-argparse -d PyYAML -d perl-YAML-Tiny -d python-lxml -d ea-apache24-mod_remoteip -d ea-apache24-mod_env -a noarch -m admin@amplica.md -e --description "nDeploy cPanel plugin" --url http://amplica.md --after-install ../after_ndeploy_install --before-remove ../after_ndeploy_uninstall --name nDeploy .
+#cd ..
 
-cd ../nDeploy-pkg-centos7
+cd nDeploy-pkg-centos7
 chmod 755 opt/nDeploy/scripts/* opt/nDeploy/apache_fpm_cp/* opt/nDeploy/nDeploy_cp/* -v
 fpm -s dir -t rpm -C ../nDeploy-pkg-centos7 --vendor "AMPLICA" --iteration ${RPM_ITERATION}.el7 -d python-inotify -d python-jinja2 -d python-simplejson -d nginx-nDeploy -d python-argparse -d PyYAML -d perl-YAML-Tiny -d python-lxml -d ea-apache24-mod_remoteip -d ea-apache24-mod_env -a noarch -m admin@amplica.md -e --description "nDeploy cPanel plugin" --url http://amplica.md --after-install ../after_ndeploy_install --before-remove ../after_ndeploy_uninstall --name nDeploy .
 mv nDeploy-*.rpm ../RPMS -v
