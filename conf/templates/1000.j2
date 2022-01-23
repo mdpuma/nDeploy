@@ -5,20 +5,20 @@ include /etc/nginx/testcookie/testcookie_aes_locations.conf;
 
 location = /wp-login.php {
     testcookie on;
-    proxy_pass http://{{ CPANELIP }}:{{ UPSTREAM_PORT }};
+    proxy_pass {{ PROTO }}://{{ CPANELIP }}:{{ UPSTREAM_PORT }};
 }
 location = /xmlrpc.php {
     testcookie on;
-    proxy_pass http://{{ CPANELIP }}:{{ UPSTREAM_PORT }};
+    proxy_pass {{ PROTO }}://{{ CPANELIP }}:{{ UPSTREAM_PORT }};
 }
 location = /administrator {
     testcookie on;
-    proxy_pass http://{{ CPANELIP }}:{{ UPSTREAM_PORT }};
+    proxy_pass {{ PROTO }}://{{ CPANELIP }}:{{ UPSTREAM_PORT }};
 }
 
 location / {
     {% if TESTCOOKIE == 'enabled' %}testcookie on;{% endif %}
-    proxy_pass http://{{ CPANELIP }}:{{ UPSTREAM_PORT }};
+    proxy_pass {{ PROTO }}://{{ CPANELIP }}:{{ UPSTREAM_PORT }};
     # limit_req zone=rate_10 burst=5;
     access_log off;
 }
@@ -35,6 +35,6 @@ location ~* ^.+\.(jpg|jpeg|gif|png|ico|css|js|zip|tgz|gz|rar|bz2|doc|xls|exe|pdf
 location @fallback {
     {% if TESTCOOKIE == 'enabled' %}testcookie on;{% endif %}
     # limit_req zone=rate_10 burst=10;
-    proxy_pass http://{{ CPANELIP }}:{{ UPSTREAM_PORT }};
+    proxy_pass {{ PROTO }}://{{ CPANELIP }}:{{ UPSTREAM_PORT }};
     access_log off;
 }

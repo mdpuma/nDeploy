@@ -293,6 +293,7 @@ def nginx_confgen(is_suspended, user_name, domain_name, reload):
                           "SOCKETFILE": fastcgi_socket,
                           "DOCUMENTROOT": document_root,
                           "UPSTREAM_PORT": backend_path,
+                          "PROTO": 'http',
                           "TESTCOOKIE": testcookie,
                           "PATHTOPYTHON": backend_path,
                           "PATHTORUBY": backend_path,
@@ -300,6 +301,21 @@ def nginx_confgen(is_suspended, user_name, domain_name, reload):
                           }
         generated_app_config = app_template.render(apptemplateVars)
         with codecs.open(nginx_dir + "/sites-enabled/" + domain_sname + ".include", "w", 'utf-8') as confout:
+            confout.write(generated_app_config)
+        
+        apptemplateVars = {"CPANELIP": cpanel_ipv4,
+                          "DOMAINNAME": domain_sname,
+                          "SOCKETFILE": fastcgi_socket,
+                          "DOCUMENTROOT": document_root,
+                          "UPSTREAM_PORT": '4430',
+                          "PROTO": 'https',
+                          "TESTCOOKIE": testcookie,
+                          "PATHTOPYTHON": backend_path,
+                          "PATHTORUBY": backend_path,
+                          "PATHTONODEJS": backend_path,
+                          }
+        generated_app_config = app_template.render(apptemplateVars)
+        with codecs.open(nginx_dir + "/sites-enabled/" + domain_sname + ".ssl.include", "w", 'utf-8') as confout:
             confout.write(generated_app_config)
         
 # End Function defs

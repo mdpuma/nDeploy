@@ -33,6 +33,7 @@ server {
 	{% if HSTS == 'enabled' %}add_header Strict-Transport-Security "max-age=31536000" always;{% endif %}
 	{% if not SSLSTAPLING %}ssl_stapling off;{% endif %}
 	
-	include /etc/nginx/sites-enabled/{{ DOMAINNAME }}.include;
+	proxy_ssl_name {{ DOMAINNAME }};
+	include /etc/nginx/sites-enabled/{{ DOMAINNAME }}.ssl.include;
 }
 {% endif %}
