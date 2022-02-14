@@ -10,9 +10,9 @@ function enable {
 	/usr/local/cpanel/bin/whmapi1 set_tweaksetting key=apache_ssl_port value=0.0.0.0:4430
 	sed -i 's/service\[httpd\]=80,/service[httpd]=8000,/' /etc/chkserv.d/httpd
 	if [ ${osversion} -le 6 ];then
-		echo 'service[nginx]=80,GET / HTTP/1.0,HTTP/1..,/etc/init.d/nginx restart' > /etc/chkserv.d/nginx
+		echo 'service[nginx]=808,GET / HTTP/1.0,HTTP/1..,/etc/init.d/nginx restart' > /etc/chkserv.d/nginx
 	else
-		echo 'service[nginx]=80,GET / HTTP/1.0,HTTP/1..,systemctl restart nginx' > /etc/chkserv.d/nginx
+		echo 'service[nginx]=808,GET / HTTP/1.0,HTTP/1..,systemctl restart nginx' > /etc/chkserv.d/nginx
 	fi
 	echo 'nginx:1' >> /etc/chkserv.d/chkservd.conf
 	/usr/local/cpanel/libexec/tailwatchd --restart
