@@ -1,6 +1,6 @@
 server {
-	listen 80 default_server;
-	listen 443 default_server ssl http2;
+	listen {{ MAINIP }}:80 default_server;
+	listen {{ MAINIP }}:443 default_server ssl http2;
 	server_name {{ HOSTNAME }} cpanel._ whm._ webmail._ webdisk._;
 	access_log off;
 	
