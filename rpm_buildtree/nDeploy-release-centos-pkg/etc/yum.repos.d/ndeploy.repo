@@ -1,5 +1,0 @@
-[ndeploy]
-name=ndeploy repo
-baseurl=http://rpm.piserve.com/CentOS/$releasever/$basearch/
-gpgcheck=0
-enabled=0

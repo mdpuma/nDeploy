@@ -1,3 +1,5 @@
+#!/bin/bash
+
 if [ $1 -eq 0 ];then
 echo -e '\e[93m Removing cpanel stats processing hooks \e[0m'
 /usr/local/cpanel/bin/manage_hooks delete script /opt/nDeploy/scripts/reload_nginx.sh --category Stats --event RunAll --stage post --manual

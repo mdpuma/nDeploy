@@ -15,7 +15,8 @@ function enable {
 		echo 'service[nginx]=808,GET / HTTP/1.0,HTTP/1..,systemctl restart nginx' > /etc/chkserv.d/nginx
 	fi
 	echo 'nginx:1' >> /etc/chkserv.d/chkservd.conf
-	/usr/local/cpanel/libexec/tailwatchd --restart
+	/scripts/restartsrv_cpsrvd
+	/scripts/restartsrv_tailwatchd
 	
 	echo -e '\e[93m Rebuilding Apache httpd backend configs and restarting daemons \e[0m'
 # 	if [ -f /var/cpanel/templates/apache2_4/vhost.default ]; then
@@ -68,8 +69,8 @@ function disable {
 	sed -i 's/service\[httpd\]=8000,/service[httpd]=80,/' /etc/chkserv.d/httpd
 	rm /etc/chkserv.d/nginx
 	echo 'nginx:0' >> /etc/chkserv.d/chkservd.conf
-	/usr/local/cpanel/whostmgr/bin/whostmgr2 --updatetweaksettings > /dev/null
-	/usr/local/cpanel/libexec/tailwatchd --restart
+	/scripts/restartsrv_cpsrvd
+	/scripts/restartsrv_tailwatchd
 	
 # 	if [ -f /var/cpanel/templates/apache2_2/vhost.local ]; then
 # 		sed -i "s/#CustomLog/CustomLog/" /var/cpanel/templates/apache2_2/vhost.local

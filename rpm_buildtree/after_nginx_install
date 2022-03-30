@@ -8,6 +8,8 @@ fi
 [ ! -d /etc/nginx/sites-enabled ] && mkdir /etc/nginx/sites-enabled
 [ ! -d /etc/nginx/ssl ] && mkdir /etc/nginx/ssl
 
+[ ! -d /var/cache/nginx/proxycache ] && mkdir /var/cache/nginx/proxycache -p
+
 getent group nginx >/dev/null || groupadd -r nginx
 getent passwd nginx >/dev/null || useradd -r -g nginx -s /sbin/nologin -d /var/cache/nginx -c "nginx user"  nginx
 
