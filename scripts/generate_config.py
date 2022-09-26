@@ -156,7 +156,7 @@ def nginx_confgen(is_suspended, user_name, domain_name, reload):
     # Get all Data from cPanel userdata files
     cpdomainyaml = "/var/cpanel/userdata/" + user_name + "/" + domain_name
     if not os.path.isfile(cpdomainyaml):
-        print "Not exists userdata file "+cpdomainyaml
+        print("Not exists userdata file "+cpdomainyaml)
         return
     cpaneldomain_data_stream = open(cpdomainyaml, 'r')
     yaml_parsed_cpaneldomain = yaml.safe_load(cpaneldomain_data_stream)
@@ -331,7 +331,7 @@ if __name__ == "__main__":
     
     cpuserdatayaml = "/var/cpanel/userdata/" + cpaneluser + "/main"
     if os.path.isfile(cpuserdatayaml) == False:
-       print "userdata main file is not found"
+       print("userdata main file is not found")
        sys.exit(0)
     cpaneluser_data_stream = open(cpuserdatayaml, 'r')
     yaml_parsed_cpaneluser = yaml.safe_load(cpaneluser_data_stream)
@@ -356,7 +356,7 @@ if __name__ == "__main__":
     # Check & make mutex
     mutex_dir = installation_path+"/lock/"+cpaneluser+".mutex";
     if os.path.isdir(mutex_dir):
-        print "Can't run generate_config due mutex exists"
+        print("Can't run generate_config due mutex exists")
         sys.exit(0)
     os.mkdir(mutex_dir)
     
