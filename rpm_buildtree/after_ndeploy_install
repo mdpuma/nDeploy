@@ -79,11 +79,10 @@ echo -e '\e[93m Adding cpanel hooks \e[0m'
 
 [ ! -d /opt/nDeploy/domain-data ] && mkdir /opt/nDeploy/domain-data
 [ ! -d /opt/nDeploy/user-data ] && mkdir /opt/nDeploy/user-data
-# [ ! -d /opt/fpmsockets ] && mkdir /opt/fpmsockets
+
 [ ! -L /usr/local/cpanel/base/frontend/paper_lantern/nDeploy_cp ] && ln -s /opt/nDeploy/nDeploy_cp /usr/local/cpanel/base/frontend/paper_lantern/
-# [ ! -L /usr/local/cpanel/base/frontend/paper_lantern/apache_fpm_cp ] && ln -s /opt/nDeploy/apache_fpm_cp /usr/local/cpanel/base/frontend/paper_lantern/
+[ ! -L /usr/local/cpanel/base/frontend/jupiter/nDeploy_cp ] && ln -s /opt/nDeploy/nDeploy_cp /usr/local/cpanel/base/frontend/jupiter/
+
 
 echo -e '\e[93m Installing nDeploy plugin in cPanel \e[0m'
 /usr/local/cpanel/scripts/install_plugin /opt/nDeploy/nDeploy_cp
-# echo -e '\e[93m Installing Apache_PHP-FPM plugin in cPanel \e[0m'
-# /usr/local/cpanel/scripts/install_plugin /opt/nDeploy/apache_fpm_cp
