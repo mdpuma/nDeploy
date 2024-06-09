@@ -10,12 +10,12 @@
   <form action="update.live.cgi" method="post">
     <p style="background-color:LightGrey">Select backend version: </p>
     <select name="version" size="5">
-      {% for key, value in BACKENDS.iteritems() %}<option value="{{ key }}"{% if BACKEND_VERSION == key %} selected{% endif %}>{{ key }}</option>{% endfor %}
+      {% for key, value in BACKENDS.items() %}<option value="{{ key }}"{% if BACKEND_VERSION == key %} selected{% endif %}>{{ key }}</option>{% endfor %}
     </select>
     <HR>
     <p style="background-color:LightGrey">Select a configuration template: </p>
     <select name="pcode" size="5">
-      {% for key,value in PROFILES.iteritems() %}<option value="{{ key }}"{% if APPTEMPLATE_CODE == key %} selected{% endif %}>{{ value }}</option>{% endfor %}
+      {% for key,value in PROFILES.items() %}<option value="{{ key }}"{% if APPTEMPLATE_CODE == key %} selected{% endif %}>{{ value }}</option>{% endfor %}
     </select>
     <HR>
     <p style="background-color:LightGrey">Redirect from http to https: </p>

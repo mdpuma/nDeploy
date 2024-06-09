@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 import os
 import socket
 import sys
@@ -25,7 +25,7 @@ def close_cpanel_liveapisock():
     cp_socket = os.environ["CPANEL_CONNECT_SOCKET"]
     sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
     sock.connect(cp_socket)
-    sock.sendall('<cpanelxml shutdown="1" />')
+    sock.sendall(str.encode('<cpanelxml shutdown="1" />'))
     sock.close()
 
 

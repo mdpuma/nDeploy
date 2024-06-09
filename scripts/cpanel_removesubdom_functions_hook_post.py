@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 
 import sys
@@ -40,6 +40,7 @@ if status == 1:
     silentremove(installation_path+"/domain-data/"+conf_sub_domain)
     silentremove(nginx_dir+conf_sub_domain+".conf")
     silentremove(nginx_dir+conf_sub_domain+".include")
+    silentremove(nginx_dir+conf_sub_domain+".ssl.include")
     subprocess.Popen("/opt/nDeploy/scripts/reload_nginx.sh", shell=True)
     print(("1 nDeploy:cPaneltrigger:RemoveSubdom:"+conf_sub_domain))
 else:

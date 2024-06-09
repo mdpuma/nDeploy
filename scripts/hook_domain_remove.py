@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import yaml
 import sys
@@ -34,5 +34,6 @@ if __name__ == "__main__":
     
     remove_file(nginx_dir+"/sites-enabled/"+domain+".conf")
     remove_file(nginx_dir+"/sites-enabled/"+domain+".include")
+    remove_file(nginx_dir+"/sites-enabled/"+domain+".ssl.include")
     remove_file(installation_path+"/domain-data/"+domain)
     remove_file(nginx_dir+"/ssl/"+domain+".crt")

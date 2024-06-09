@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 
 import sys
@@ -58,10 +58,6 @@ sub_domains = json_parsed_cpaneluser.get('sub_domains')
 
 # If cPanel username is modified
 if cpanelnewuser != cpaneluser or maindomain != main_domain:
-    if cpanelnewuser != cpaneluser:
-        # Remove php-fpm pool file and reload php-fpm
-        silentremove(installation_path + "/php-fpm.d/" + cpaneluser + ".conf")
-        subprocess.Popen(installation_path+"/scripts/init_backends.php --action=reload >/dev/null", shell=True)
     # Remove domains associated with the user
     silentremove(installation_path+"/domain-data/"+main_domain)
     silentremove(nginx_dir+main_domain+".conf")

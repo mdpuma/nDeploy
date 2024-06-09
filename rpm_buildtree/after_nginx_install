@@ -13,11 +13,7 @@ fi
 getent group nginx >/dev/null || groupadd -r nginx
 getent passwd nginx >/dev/null || useradd -r -g nginx -s /sbin/nologin -d /var/cache/nginx -c "nginx user"  nginx
 
-if [ -d /etc/systemd ]; then
-	systemctl preset nginx.service
-	systemctl enable nginx.service
-else
-	chkconfig --level=235 nginx on
-fi
+systemctl preset nginx.service
+systemctl enable nginx.service
 
 openssl dhparam -out /etc/nginx/dhparam.pem 2048

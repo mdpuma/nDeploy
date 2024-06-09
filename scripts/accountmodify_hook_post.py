@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 
 import yaml
@@ -64,8 +64,8 @@ maindomain = mydict["domain"]
 # Calling the config generate script for the user
 if cpanelnewuser != cpaneluser:
     subprocess.call(installation_path+"/scripts/generate_config.py "+cpanelnewuser, shell=True)
-    silentremove(installation_path+"/conf/php-fpm.d/"+cpaneluser+".conf")
-    remove_php_fpm_pool(cpaneluser)
+    #silentremove(installation_path+"/conf/php-fpm.d/"+cpaneluser+".conf")
+    #remove_php_fpm_pool(cpaneluser)
     print(("1 nDeploy:postmodify:"+cpanelnewuser))
 else:
     subprocess.call(installation_path+"/scripts/generate_config.py "+cpaneluser, shell=True)

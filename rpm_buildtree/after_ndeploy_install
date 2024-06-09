@@ -80,7 +80,6 @@ echo -e '\e[93m Adding cpanel hooks \e[0m'
 [ ! -d /opt/nDeploy/domain-data ] && mkdir /opt/nDeploy/domain-data
 [ ! -d /opt/nDeploy/user-data ] && mkdir /opt/nDeploy/user-data
 
-[ ! -L /usr/local/cpanel/base/frontend/paper_lantern/nDeploy_cp ] && ln -s /opt/nDeploy/nDeploy_cp /usr/local/cpanel/base/frontend/paper_lantern/
 [ ! -L /usr/local/cpanel/base/frontend/jupiter/nDeploy_cp ] && ln -s /opt/nDeploy/nDeploy_cp /usr/local/cpanel/base/frontend/jupiter/
 
 

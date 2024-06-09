@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 
 import yaml
@@ -56,7 +56,7 @@ cpuserdatayaml = "/var/cpanel/userdata/" + cpaneluser + "/main"
 if os.path.isfile(cpuserdatayaml) == False:
     print(("1 nDeploy:remove:"+cpaneluser+" Can't run script accountremove_hook_pre.py, due missing "+cpuserdatayaml+" file"))
     sys.exit()
-    
+
 cpaneluser_data_stream = open(cpuserdatayaml, 'r')
 yaml_parsed_cpaneluser = yaml.safe_load(cpaneluser_data_stream)
 cpaneluser_data_stream.close()
@@ -68,9 +68,10 @@ remove_file(installation_path+"/user-data/"+cpaneluser)
 remove_file(installation_path+"/domain-data/"+main_domain)
 remove_file(nginx_dir+"/sites-enabled/"+main_domain+".conf")
 remove_file(nginx_dir+"/sites-enabled/"+main_domain+".include")
+remove_file(nginx_dir+"/sites-enabled/"+main_domain+".ssl.include")
 
-subprocess.call("rm -rf /var/resin/hosts/"+main_domain, shell=True)
 if os.path.isfile("/var/cpanel/userdata/" + cpaneluser + "/" + main_domain + "_SSL"):
+    # remove ssl certificate from /etc/nginx/ssl/*.crt
     remove_file(nginx_dir+"/ssl/"+main_domain+".crt")
 for domain_in_subdomains in sub_domains:
     domain_in_subdomains_orig=domain_in_subdomains
@@ -79,10 +80,10 @@ for domain_in_subdomains in sub_domains:
     remove_file(installation_path+"/domain-data/"+domain_in_subdomains)
     remove_file(nginx_dir+"/sites-enabled/"+domain_in_subdomains+".conf")
     remove_file(nginx_dir+"/sites-enabled/"+domain_in_subdomains+".include")
-    subprocess.call("rm -rf /var/resin/hosts/"+domain_in_subdomains, shell=True)
+    remove_file(nginx_dir+"/sites-enabled/"+domain_in_subdomains+".ssl.include")
     if os.path.isfile("/var/cpanel/userdata/" + cpaneluser + "/" + domain_in_subdomains_orig + "_SSL"):
         remove_file(nginx_dir+"/ssl/"+domain_in_subdomains+".crt")
-remove_php_fpm_pool(cpaneluser)
-subprocess.call("/opt/nDeploy/scripts/init_backends.php --action=reload >/dev/null", shell=True)
+#remove_php_fpm_pool(cpaneluser)
+#subprocess.call("/opt/nDeploy/scripts/init_backends.php --action=reload >/dev/null", shell=True)
 subprocess.call("/opt/nDeploy/scripts/reload_nginx.sh >/dev/null 2>&1", shell=True)
 print(("1 nDeploy:remove:"+cpaneluser))

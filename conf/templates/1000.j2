@@ -3,12 +3,12 @@
 root {{ DOCUMENTROOT }};
 include /etc/nginx/testcookie/testcookie_aes_locations.conf;
 
-location = /wp-login.php {
-    testcookie on;
+location /xmlrpc.php {
+    access_log /var/log/nginx/abuser.log abuser;
     proxy_pass {{ PROTO }}://{{ CPANELIP }}:{{ UPSTREAM_PORT }};
 }
-location = /xmlrpc.php {
-    testcookie on;
+location /wp-login.php {
+    access_log /var/log/nginx/abuser.log abuser;
     proxy_pass {{ PROTO }}://{{ CPANELIP }}:{{ UPSTREAM_PORT }};
 }
 location = /administrator {

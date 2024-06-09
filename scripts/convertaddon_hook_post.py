@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 
 import sys
@@ -39,7 +39,7 @@ if conversionstatus == 1:
     silentremove(installation_path+"/domain-data/"+addonconfigdom)
     silentremove(nginx_dir+addonconfigdom+".conf")
     silentremove(nginx_dir+addonconfigdom+".include")
-    silentremove(nginx_dir+addonconfigdom+".nxapi.wl")
+    #silentremove(nginx_dir+addonconfigdom+".nxapi.wl")
     subprocess.Popen("/opt/nDeploy/scripts/reload_nginx.sh", shell=True)
     silentremove(installation_path+"/lock/"+theaddon)
     print(("1 nDeploy:cPaneltrigger:ConvertAddon:"+addonconfigdom))
