@@ -1,0 +1,6 @@
+ 
+
+[DEFAULT]
+
+destemail = admin@amplica.md
+sender = fail2ban@web2.amplica.net

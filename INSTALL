@@ -1,0 +1,4 @@
+1) Install ruby fpm via rpm_buildtree/fpm_install.sh
+2) You have to compile using scripts from rpm_buildtree 2 packages nginx-nDeploy and nDeploy
+3) Install fresh compiled RPMS
+
