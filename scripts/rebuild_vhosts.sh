@@ -10,4 +10,4 @@ for CPANELUSER in $USERS; do
 	echo "[$i/$COUNT] /opt/nDeploy/scripts/generate_config.py $CPANELUSER"
 done
 
-/opt/nDeploy/scripts/restart_nginx.sh
+/opt/nDeploy/scripts/reload_nginx.sh
