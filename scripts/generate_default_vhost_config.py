@@ -24,10 +24,15 @@ ip_list = data_dict.get('ip')
 cpanel_ip_list = []
 for myip in ip_list:
     theip = myip.get('ip')
-    cpanel_ip_list.append(theip)
+    
     mainaddr_status = myip.get('mainaddr')
     if mainaddr_status == 1:
         mainip = theip
+    theip = myip.get('ip')
+    if re.search("^(192\.168\.|10\.)", theip):
+        continue
+    cpanel_ip_list.append(theip)
+
 
 # Get server hostname
 p = subprocess.Popen(['/usr/local/cpanel/bin/whmapi1', 'gethostname', '--output=json'], stdout=subprocess.PIPE)
@@ -79,3 +84,9 @@ else:
         httpd_mod_remoteip_config_file.write(httpd_mod_remoteip_config)
     with codecs.open('/etc/httpd/conf/includes/post_virtualhost_global.conf', 'w+', 'utf-8') as httpd_post_virtualhost_global:
         httpd_post_virtualhost_global.write(post_virtualhost_global_config)
+
+# Generate upstream.conf
+upstream_server_template = templateEnv.get_template('upstream.conf.j2')
+upstream_server_config = upstream_server_template.render(templateVars)
+with codecs.open('/etc/nginx/conf.d/upstream.conf', 'w', 'utf-8') as upstream_server_config_file:
+    upstream_server_config_file.write(upstream_server_config)
