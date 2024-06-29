@@ -5,6 +5,7 @@ import json
 import os
 import jinja2
 import codecs
+import re
 
 
 __author__ = "Anoop P Alias"
