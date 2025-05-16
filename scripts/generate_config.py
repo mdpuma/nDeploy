@@ -147,7 +147,7 @@ def php_backend_reload(phpversion):
         subprocess.Popen([control_script, '--action=reload', '--php='+phpversion])    
 
 
-def nginx_confgen(is_suspended, user_name, domain_name, reload):
+def nginx_confgen(is_suspended, user_name, domain_name, reload, is_subdomain):
     """Function that generates nginx config given a domain name"""
     # Initiate Jinja2 templateEnv
     templateLoader = jinja2.FileSystemLoader(installation_path + "/conf/templates")
@@ -169,11 +169,22 @@ def nginx_confgen(is_suspended, user_name, domain_name, reload):
         domain_sname="_wildcard_."+domain_sname.replace('*.','')
     else:
         domain_aname = yaml_parsed_cpaneldomain.get('serveralias')
+    
     if domain_aname:
         domain_aname_list = domain_aname.split(' ')
+        if domain_sname.startswith("_wildcard_"):
+            domain_aname_list.append("cpanel."+domain_sname)
+        else:
+            if is_subdomain == False:
+                domain_aname_list.append("cpanel."+domain_sname)
+                domain_aname_list.append("cpcontacts."+domain_sname)
+                domain_aname_list.append("webmail."+domain_sname)
+                domain_aname_list.append("webdisk."+domain_sname)
+                domain_aname_list.append("cpcalendars."+domain_sname)
+        domain_aname_string = " ".join(domain_aname_list)
     else:
         domain_aname_list = []
-    domain_list = domain_sname + " " + domain_aname
+    domain_list = domain_sname + " " + domain_aname_string
     if 'ipv6' in list(yaml_parsed_cpaneldomain.keys()):
         if yaml_parsed_cpaneldomain.get('ipv6'):
             ipv6_addr_list = yaml_parsed_cpaneldomain.get('ipv6').keys()
@@ -360,10 +371,10 @@ if __name__ == "__main__":
         sys.exit(0)
     os.mkdir(mutex_dir)
     
-    nginx_confgen(is_suspended, cpaneluser, main_domain, args.reload)  #Generate conf for main domain
+    nginx_confgen(is_suspended, cpaneluser, main_domain, args.reload, False)  #Generate conf for main domain
     
     for domain_in_subdomains in sub_domains:
-        nginx_confgen(is_suspended, cpaneluser, domain_in_subdomains, args.reload)  #Generate conf for sub domains which takes care of addon as well
+        nginx_confgen(is_suspended, cpaneluser, domain_in_subdomains, args.reload, True)  #Generate conf for sub domains which takes care of addon as well
     
     # Remove mutex
     os.rmdir(mutex_dir)

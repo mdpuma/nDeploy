@@ -1,0 +1,1 @@
+77317957  IM360 WAF: File upload||File:%{MATCHED_VAR}||Size:%{FILES_SIZES}||Combined:%{FILES_COMBINED_SIZE}||User:%{SCRIPT_USERNAME}||SC:%{SCRIPT_FILENAME}||WPU:%{TX.wp_user}||Py time:%{TX.py_scan_time}||Lua time:%{TX.lua_scan_time}||RSV:6.92||RS:%{RESPONSE_STATUS}||T:APACHE|| 
