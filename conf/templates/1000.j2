@@ -6,44 +6,44 @@ include /etc/nginx/testcookie/testcookie_aes_locations.conf;
 # DO NOT USE directives proxy_set_header here
 
 location /xmlrpc.php {
-    access_log /var/log/nginx/abuser.log abuser;
-#    proxy_pass {{ PROTO }}://{{ CPANELIP }}:{{ UPSTREAM_PORT }};
-    proxy_pass {{ PROTO }}://{{ PROTO }}_{{ CPANELIP }};
+	access_log /var/log/nginx/abuser.log abuser;
+	proxy_pass {{ PROTO }}://{{ CPANELIP }}:{{ UPSTREAM_PORT }};
+#	proxy_pass {{ PROTO }}://{{ PROTO }}_{{ CPANELIP }};
 	
 }
 location /wp-login.php {
-    access_log /var/log/nginx/abuser.log abuser;
-#    proxy_pass {{ PROTO }}://{{ CPANELIP }}:{{ UPSTREAM_PORT }};
-    proxy_pass {{ PROTO }}://{{ PROTO }}_{{ CPANELIP }};
+	access_log /var/log/nginx/abuser.log abuser;
+	proxy_pass {{ PROTO }}://{{ CPANELIP }}:{{ UPSTREAM_PORT }};
+#	proxy_pass {{ PROTO }}://{{ PROTO }}_{{ CPANELIP }};
 }
 location = /administrator {
-    testcookie on;
-#    proxy_pass {{ PROTO }}://{{ CPANELIP }}:{{ UPSTREAM_PORT }};
-    proxy_pass {{ PROTO }}://{{ PROTO }}_{{ CPANELIP }};
+	testcookie on;
+	proxy_pass {{ PROTO }}://{{ CPANELIP }}:{{ UPSTREAM_PORT }};
+#	proxy_pass {{ PROTO }}://{{ PROTO }}_{{ CPANELIP }};
 }
 
 location / {
-    {% if TESTCOOKIE == 'enabled' %}testcookie on;{% endif %}
-#    proxy_pass {{ PROTO }}://{{ CPANELIP }}:{{ UPSTREAM_PORT }};
-    proxy_pass {{ PROTO }}://{{ PROTO }}_{{ CPANELIP }};
+	{% if TESTCOOKIE == 'enabled' %}testcookie on;{% endif %}
+	proxy_pass {{ PROTO }}://{{ CPANELIP }}:{{ UPSTREAM_PORT }};
+#	proxy_pass {{ PROTO }}://{{ PROTO }}_{{ CPANELIP }};
 
-    # limit_req zone=rate_10 burst=5;
-    access_log off;
+	# limit_req zone=rate_10 burst=5;
+	access_log off;
 }
 
 location ~* ^.+\.(jpg|jpeg|gif|png|ico|css|js|zip|tgz|gz|rar|bz2|doc|xls|exe|pdf|ppt|txt|tar|bmp|rtf|swf|svg|woff2|map|webp)$ {
-    testcookie off;
-    expires 31d;
+	testcookie off;
+	expires 31d;
 
-    # access_log /usr/local/apache/domlogs/{{ DOMAINNAME }} main;
-    # add_header X-Server "by nginx";
-    error_page 404 = @fallback;
-    access_log off;
+	# access_log /usr/local/apache/domlogs/{{ DOMAINNAME }} main;
+	# add_header X-Server "by nginx";
+	error_page 404 = @fallback;
+	access_log off;
 }
 location @fallback {
-    {% if TESTCOOKIE == 'enabled' %}testcookie on;{% endif %}
-    # limit_req zone=rate_10 burst=10;
-#    proxy_pass {{ PROTO }}://{{ CPANELIP }}:{{ UPSTREAM_PORT }};
-    proxy_pass {{ PROTO }}://{{ PROTO }}_{{ CPANELIP }};
-    access_log off;
+	{% if TESTCOOKIE == 'enabled' %}testcookie on;{% endif %}
+	# limit_req zone=rate_10 burst=10;
+	proxy_pass {{ PROTO }}://{{ CPANELIP }}:{{ UPSTREAM_PORT }};
+#	proxy_pass {{ PROTO }}://{{ PROTO }}_{{ CPANELIP }};
+	access_log off;
 }
