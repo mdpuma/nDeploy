@@ -282,6 +282,8 @@ def nginx_confgen(is_suspended, user_name, domain_name, reload, is_subdomain):
         shutil.copyfile(installation_path + "/conf/custom/" + domain_sname + ".include", nginx_dir + "/sites-enabled/" + domain_sname + ".include")
         if os.path.isfile(installation_path + "/conf/custom/" + domain_sname + ".ssl.include"):
             shutil.copyfile(installation_path + "/conf/custom/" + domain_sname + ".ssl.include", nginx_dir + "/sites-enabled/" + domain_sname + ".ssl.include")
+        if os.path.isfile(installation_path + "/conf/custom/" + domain_sname + ".conf"):
+            shutil.copyfile(installation_path + "/conf/custom/" + domain_sname + ".conf", nginx_dir + "/sites-enabled/" + domain_sname + ".conf")
     else:
         app_template = templateEnv.get_template(apptemplate_code)
         # We configure the backends first if necessary
