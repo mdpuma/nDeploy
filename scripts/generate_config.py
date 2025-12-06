@@ -187,7 +187,7 @@ def nginx_confgen(is_suspended, user_name, domain_name, reload, is_subdomain):
     domain_list = domain_sname + " " + domain_aname_string
     if 'ipv6' in list(yaml_parsed_cpaneldomain.keys()):
         if yaml_parsed_cpaneldomain.get('ipv6'):
-            ipv6_addr_list = yaml_parsed_cpaneldomain.get('ipv6').keys()
+            ipv6_addr_list = list(yaml_parsed_cpaneldomain.get('ipv6').keys())
             ipv6_addr = str(ipv6_addr_list[0])
             hasipv6 = True
         else:
