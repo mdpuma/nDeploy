@@ -11,11 +11,6 @@ try:
 except ImportError:
     import json
 
-__author__ = "Anoop P Alias"
-__copyright__ = "Copyright Anoop P Alias"
-__license__ = "GPL"
-__email__ = "anoopalias01@gmail.com"
-
 installation_path = "/opt/nDeploy"  # Absolute Installation Path
 
 # Get the values send by cPanel in stdin
@@ -26,4 +21,6 @@ mydict = cpjson.get('data')
 cpaneluser = mydict["username"]
 
 subprocess.call(installation_path+"/scripts/generate_config.py "+cpaneluser, shell=True)
+subprocess.call(installation_path+"/scripts/reload_nginx.sh", shell=True)
 print(("1 nDeploy:instalssl:post:"+cpaneluser))
+

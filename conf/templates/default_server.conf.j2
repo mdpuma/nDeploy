@@ -28,7 +28,8 @@ server {
 	
 	ssl_certificate {{ CPSRVDSSL }};
 	ssl_certificate_key {{ CPSRVDSSL }};
-	
+  proxy_ssl_name $host;	
+
 	location / {
 		proxy_pass   https://{{ MAINIP }}:4430;
 		

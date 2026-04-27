@@ -4,7 +4,7 @@ ulimit -n 50000 >/dev/null 2>&1
 LAST_RELOAD=$(cat /opt/nDeploy/lock/nginx.lastreload 2>/dev/null)
 
 # $LAST_RELOAD + 60 > CURRENT_TIME
-if [ -n "$LAST_RELOAD" ] && [ $((LAST_RELOAD + 60)) -gt "`date +%s`" ]; then
+if [ -n "$LAST_RELOAD" ] && [ $((LAST_RELOAD + 30)) -gt "`date +%s`" ]; then
     echo '1 nDeploy::nginx::cant reload, skipping reload'
     exit 0
 fi
