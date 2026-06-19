@@ -6,7 +6,7 @@ ini_set('date.timezone', 'Europe/Chisinau');
 ini_set('error_log', 'error_log');
 error_reporting(E_ALL);
 
-check_apache('http://127.0.0.1:8000/whm-server-status', 300, 5);
+check_apache('http://127.0.0.1:8000/server-status', 300, 5);
 
 // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 function check_apache($url, $max_processes, $attempts=3) {

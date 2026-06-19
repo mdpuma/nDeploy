@@ -7,6 +7,7 @@ function enable {
     echo -e '\e[93m Modifying apache http and https port in cpanel \e[0m'
 	/usr/local/cpanel/bin/whmapi1 set_tweaksetting key=apache_port value=0.0.0.0:8000
 	/usr/local/cpanel/bin/whmapi1 set_tweaksetting key=apache_ssl_port value=0.0.0.0:4430
+  /usr/local/cpanel/bin/whmapi1 set_tweaksetting key=allow_server_info_status_from value=127.0.0.1
 	sed -i 's/service\[httpd\]=80,/service[httpd]=8000,/' /etc/chkserv.d/httpd
     
 	echo 'service[nginx]=808,GET / HTTP/1.0,HTTP/1..,systemctl restart nginx' > /etc/chkserv.d/nginx
