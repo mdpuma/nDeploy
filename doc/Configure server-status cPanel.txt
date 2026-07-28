@@ -1,0 +1,5 @@
+/usr/local/cpanel/bin/whmapi1 get_tweaksetting key=allow_server_info_status_from
+
+
+/usr/local/cpanel/bin/whmapi1 set_tweaksetting key=allow_server_info_status_from value=127.0.0.1
+/scripts/rebuildhttpdconf && httpd -k graceful

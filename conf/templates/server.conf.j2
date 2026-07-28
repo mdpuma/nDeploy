@@ -8,7 +8,7 @@ server {
 	access_log /usr/local/apache/domlogs/{{ DOMAINNAME }}-bytes_log bytes_log;
 	disable_symlinks if_not_owner from={{ DOCUMENTROOT }};
 	
-	location ~ \.txt$ {
+	location ~ ^/.well-known/acme-challenge/.*$ {
 		root {{ DOCUMENTROOT }};
 	}
 	{% if REDIRECTTOSSL == 'enabled' %}location / {
