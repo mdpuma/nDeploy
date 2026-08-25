@@ -30,7 +30,7 @@ for myip in ip_list:
     if mainaddr_status == 1:
         mainip = theip
     theip = myip.get('ip')
-    if re.search("^(192\.168\.|10\.)", theip):
+    if re.search("^(192\\.168\\.|10\\.)", theip):
         continue
     cpanel_ip_list.append(theip)
 

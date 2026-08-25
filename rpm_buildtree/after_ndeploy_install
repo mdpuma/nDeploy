@@ -86,3 +86,8 @@ echo -e '\e[93m Adding cpanel hooks \e[0m'
 
 echo -e '\e[93m Installing nDeploy plugin in cPanel \e[0m'
 /usr/local/cpanel/scripts/install_plugin /opt/nDeploy/nDeploy_cp
+
+
+# enable valkey
+systemctl enable valkey
+systemctl start valkey
