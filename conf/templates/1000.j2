@@ -1,33 +1,27 @@
 #proxy pass to a backend webserver listening on port 8000
+# DO NOT USE directives proxy_set_header here
 
 root {{ DOCUMENTROOT }};
 include /etc/nginx/testcookie/testcookie_aes_locations.conf;
 
-# DO NOT USE directives proxy_set_header here
-
 location /xmlrpc.php {
 	access_log /var/log/nginx/abuser.log abuser;
 	proxy_pass {{ PROTO }}://{{ CPANELIP }}:{{ UPSTREAM_PORT }};
-#	proxy_pass {{ PROTO }}://{{ PROTO }}_{{ CPANELIP }};
-	
 }
 location /wp-login.php {
 	access_log /var/log/nginx/abuser.log abuser;
 	proxy_pass {{ PROTO }}://{{ CPANELIP }}:{{ UPSTREAM_PORT }};
-#	proxy_pass {{ PROTO }}://{{ PROTO }}_{{ CPANELIP }};
 }
 location = /administrator {
 	testcookie on;
 	proxy_pass {{ PROTO }}://{{ CPANELIP }}:{{ UPSTREAM_PORT }};
-#	proxy_pass {{ PROTO }}://{{ PROTO }}_{{ CPANELIP }};
 }
 
 location / {
 	{% if TESTCOOKIE == 'enabled' %}testcookie on;{% endif %}
 	proxy_pass {{ PROTO }}://{{ CPANELIP }}:{{ UPSTREAM_PORT }};
-#	proxy_pass {{ PROTO }}://{{ PROTO }}_{{ CPANELIP }};
 
-	# limit_req zone=rate_10 burst=5;
+	# dynamic_limit_req zone=limitreq20 burst=10 nodelay;
 	access_log off;
 }
 
@@ -40,10 +34,10 @@ location ~* ^.+\.(jpg|jpeg|gif|png|ico|css|js|zip|tgz|gz|rar|bz2|doc|xls|exe|pdf
 	error_page 404 = @fallback;
 	access_log off;
 }
+
 location @fallback {
 	{% if TESTCOOKIE == 'enabled' %}testcookie on;{% endif %}
-	# limit_req zone=rate_10 burst=10;
+	# dynamic_limit_req zone=limitreq20 burst=10 nodelay;
 	proxy_pass {{ PROTO }}://{{ CPANELIP }}:{{ UPSTREAM_PORT }};
-#	proxy_pass {{ PROTO }}://{{ PROTO }}_{{ CPANELIP }};
 	access_log off;
 }

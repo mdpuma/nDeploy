@@ -3,14 +3,14 @@
 function enable {
 	echo -e '\e[93m Generating the default nginx vhosts \e[0m'
 	/opt/nDeploy/scripts/generate_default_vhost_config.py
-	
-    echo -e '\e[93m Modifying apache http and https port in cpanel \e[0m'
+
+  echo -e '\e[93m Modifying apache http and https port in cpanel \e[0m'
 	/usr/local/cpanel/bin/whmapi1 set_tweaksetting key=apache_port value=0.0.0.0:8000
 	/usr/local/cpanel/bin/whmapi1 set_tweaksetting key=apache_ssl_port value=0.0.0.0:4430
   /usr/local/cpanel/bin/whmapi1 set_tweaksetting key=allow_server_info_status_from value=127.0.0.1
 	sed -i 's/service\[httpd\]=80,/service[httpd]=8000,/' /etc/chkserv.d/httpd
     
-	echo 'service[nginx]=808,GET / HTTP/1.0,HTTP/1..,systemctl restart nginx' > /etc/chkserv.d/nginx
+	echo "service[nginx]=808,GET / HTTP/1.0,HTTP/1..,systemctl restart nginx" > /etc/chkserv.d/nginx
     
 	echo 'nginx:1' >> /etc/chkserv.d/chkservd.conf
 	/scripts/restartsrv_cpsrvd

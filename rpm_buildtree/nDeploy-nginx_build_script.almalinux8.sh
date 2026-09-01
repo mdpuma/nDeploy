@@ -2,9 +2,9 @@
 #Author: Anoop P Alias
 
 ##Vars
-NGINX_VERSION="1.26.1"
-NGINX_RPM_ITER="11.almalinux8"
-OPENSSL_VERSION="3.9.2"
+NGINX_VERSION="1.31.4"
+NGINX_RPM_ITER="14.almalinux8"
+OPENSSL_VERSION="4.2.1"
 CACHE_PURGE_VERSION="2.3"
 
 CURRENT_DIR=$PWD
@@ -19,7 +19,7 @@ yum -y install rpm-build libcurl-devel pcre-devel git GeoIP-devel
 [ ! -f libressl-$OPENSSL_VERSION.tar.gz ] && wget http://ftp.openbsd.org/pub/OpenBSD/LibreSSL/libressl-$OPENSSL_VERSION.tar.gz
 tar -xvzf libressl-$OPENSSL_VERSION.tar.gz
 
-wget http://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz
+[ ! -f nginx-${NGINX_VERSION}.tar.gz ] && wget http://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz
 tar -xvzf nginx-${NGINX_VERSION}.tar.gz
 cd nginx-${NGINX_VERSION}/
 
