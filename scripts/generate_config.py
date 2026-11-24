@@ -25,6 +25,8 @@ __email__ = "anoop.alias@piserve.com"
 installation_path = "/opt/nDeploy"  # Absolute Installation Path
 nginx_dir = "/etc/nginx/"
 control_script = installation_path+"/scripts/init_backends.php"
+backend_config_file = installation_path+"/conf/backends.yaml"
+profile_config_file = installation_path+"/conf/profiles.yaml"
 
 # Function defs
 
@@ -233,22 +235,73 @@ def nginx_confgen(is_suspended, user_name, domain_name, reload, is_subdomain):
         os.chmod(domain_data_file, 0o660)
     with open(domain_data_file, 'r') as domain_data_stream:
         yaml_parsed_domain_data = yaml.safe_load(domain_data_stream)
+    # SECURITY: for non-suspended domains the domain-data file is owned by, and
+    # writable by, the cPanel user (see the chown/chmod above). Every value read
+    # from it is therefore untrusted and must be validated against the
+    # server-controlled backends.yaml / profiles.yaml before it is used to build
+    # nginx config. backend_path in particular is NEVER taken from this file - a
+    # crafted value there would be rendered unescaped into proxy_pass/fastcgi_pass
+    # and let the user inject arbitrary nginx directives (local root). It is
+    # looked up from backends.yaml instead.
+    try:
+        with open(backend_config_file, 'r') as backend_data_stream:
+            trusted_backends = yaml.safe_load(backend_data_stream) or {}
+    except (IOError, OSError):
+        trusted_backends = {}
+    try:
+        with open(profile_config_file, 'r') as profile_data_stream:
+            trusted_profiles = yaml.safe_load(profile_data_stream) or {}
+    except (IOError, OSError):
+        trusted_profiles = {}
+
     # Following are the backend details that can be changed from the UI
     backend_category = yaml_parsed_domain_data.get('backend_category', None)
     apptemplate_code = yaml_parsed_domain_data.get('apptemplate_code', None)
-    backend_path = yaml_parsed_domain_data.get('backend_path', None)
     backend_version = yaml_parsed_domain_data.get('backend_version', None)
     hsts = yaml_parsed_domain_data.get('hsts', None)
     redirecttossl = yaml_parsed_domain_data.get('redirect_to_ssl', None)
     testcookie = yaml_parsed_domain_data.get('testcookie', None)
     fastcgi_socket = False
-    
-    if hasssl == 'disabled':
-        redirecttossl = 'disabled'
-    
+
+    # Validate category/version against backends.yaml; fall back to the safe
+    # default when the user-supplied pair is not registered on the server.
+    if backend_category not in trusted_backends or \
+            backend_version not in trusted_backends.get(backend_category, {}):
+        print('Invalid backend_category/backend_version for ' + domain_sname +
+              ' - falling back to default PROXY/apache')
+        backend_category = 'PROXY'
+        backend_version = 'apache'
+        apptemplate_code = '1000.j2'
+
+    # backend_path is derived from the trusted file, never from domain-data.
+    backend_path = trusted_backends.get(backend_category, {}).get(backend_version)
+    if backend_path is None:
+        print('No backend_path registered for ' + str(backend_category) + '/' +
+              str(backend_version) + ' in backends.yaml')
+        return 1
+
+    # Validate the application template against profiles.yaml and reject any
+    # path separator so a crafted value cannot escape the templates directory.
     if apptemplate_code is None:
         apptemplate_code = '1000.j2'
-      
+    if not isinstance(apptemplate_code, str) or '/' in apptemplate_code or \
+            '\\' in apptemplate_code or \
+            apptemplate_code not in trusted_profiles.get(backend_category, {}):
+        print('Invalid apptemplate_code ' + str(apptemplate_code) +
+              ' for category ' + str(backend_category))
+        return 1
+
+    # The remaining toggles are restricted to a strict allow-list.
+    if hsts not in ('enabled', 'disabled'):
+        hsts = 'disabled'
+    if redirecttossl not in ('enabled', 'disabled'):
+        redirecttossl = 'disabled'
+    if testcookie not in ('enabled', 'disabled'):
+        testcookie = 'disabled'
+
+    if hasssl == 'disabled':
+        redirecttossl = 'disabled'
+
     if os.path.isfile(installation_path+'/conf/templates/'+apptemplate_code) is False:
         print('No apptemplate_code ' + apptemplate_code + ' in ' + installation_path + '/conf/templates')
         return 1

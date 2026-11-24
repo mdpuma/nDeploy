@@ -21,6 +21,31 @@ myhome = os.environ["HOME"]
 cgitb.enable()
 
 
+def domain_belongs_to_user(domain):
+    """SECURITY: confirm the requested domain belongs to the authenticated
+    cPanel user before its config is read or written, and reject any path
+    separator so a crafted value cannot escape the domain-data directory."""
+    if not domain or '/' in domain or domain in ('.', '..'):
+        return False
+    cpaneluser = os.environ.get("USER", "")
+    cpuserdatayaml = "/var/cpanel/userdata/" + cpaneluser + "/main"
+    if not os.path.isfile(cpuserdatayaml):
+        return False
+    with open(cpuserdatayaml, 'r') as udf:
+        ud = yaml.safe_load(udf) or {}
+
+    def norm(d):
+        if d and d.startswith('*.'):
+            return "_wildcard_." + d.replace('*.', '')
+        return d
+    allowed = set()
+    if ud.get('main_domain'):
+        allowed.add(norm(ud.get('main_domain')))
+    for sd in (ud.get('sub_domains') or []):
+        allowed.add(norm(sd))
+    return domain in allowed
+
+
 def close_cpanel_liveapisock():
     """We close the cpanel LiveAPI socket here as we dont need those"""
     cp_socket = os.environ["CPANEL_CONNECT_SOCKET"]
@@ -58,6 +83,9 @@ print('<a href="ndeploy.live.cgi"><img border="0" src="nDeploy.png" alt="nDeploy
 print('<HR>')
 if form.getvalue('domain'):
     mydomain = form.getvalue('domain')
+    if not domain_belongs_to_user(mydomain):
+        print('ERROR : Forbidden')
+        sys.exit(0)
     profileyaml = installation_path + "/domain-data/" + mydomain
     if os.path.isfile(profileyaml):
         profileyaml_data_stream = open(profileyaml, 'r')
