@@ -1,7 +1,7 @@
 #!/bin/bash
 #Author: Anoop P Alias
 
-RPM_ITERATION="49"
+RPM_ITERATION="20261124.almalinux8"
 
 rm -f nDeploy-pkg/nDeploy-*rpm nDeploy-pkg-centos7/nDeploy-*rpm
 
@@ -13,6 +13,6 @@ chmod 755 nDeploy-pkg/opt/nDeploy/scripts/*
 
 cd nDeploy-pkg
 chmod 755 opt/nDeploy/scripts/* opt/nDeploy/nDeploy_cp/* -v
-fpm -s dir -t rpm -C . --vendor "IPHOST" --iteration ${RPM_ITERATION}.almalinux8 -d python3-lxml -d python3-pyyaml -d python3-inotify -d python3-jinja2 -d python3-simplejson -d perl-YAML-Tiny -d python3-configargparse -d ea-apache24-mod_remoteip -d ea-apache24-mod_env -d valkey -a noarch -m admin@innovahosting.net -e --description "nDeploy cPanel plugin" --url http://innovahosting.net --after-install ../after_ndeploy_install --before-remove ../after_ndeploy_uninstall --name nDeploy .
+fpm -s dir -t rpm -C . --vendor "IPHOST" --iteration ${RPM_ITERATION} -d python3-lxml -d python3-pyyaml -d python3-inotify -d python3-jinja2 -d python3-simplejson -d perl-YAML-Tiny -d python3-configargparse -d ea-apache24-mod_remoteip -d ea-apache24-mod_env -d valkey -a noarch -m admin@innovahosting.net -e --description "nDeploy cPanel plugin" --url http://innovahosting.net --after-install ../after_ndeploy_install --before-remove ../after_ndeploy_uninstall --name nDeploy .
 mv nDeploy-*.rpm ../RPMS -v
 cd ..

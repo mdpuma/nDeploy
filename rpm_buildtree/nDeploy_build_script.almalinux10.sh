@@ -1,7 +1,7 @@
 #!/bin/bash
 #Author: Anoop P Alias
 
-RPM_ITERATION="52.almalinux10"
+RPM_ITERATION="20261124.almalinux10"
 
 rm -f nDeploy-pkg/nDeploy-*rpm nDeploy-pkg-centos7/nDeploy-*rpm
 
